@@ -1,5 +1,5 @@
 {
-  description = "Reusable NixOS + Home Manager framework: host factory, shared modules, overlays, and packages. A private consumer flake (nix-secrets) supplies hosts, identity, and secrets.";
+  description = "Consolidated NixOS + Home Manager source of truth for hosts, modules, assets, overlays, and packages.";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -39,13 +39,17 @@
         overlays = [ (import ./overlays { inherit inputs; }) ];
         config.allowUnfree = true;
       };
+      mkHost = import ./lib/mk-host.nix { inherit inputs; };
+      mkHomeHost = import ./lib/mk-home-host.nix { inherit inputs; };
+      gear = import ./hosts/gear.nix;
+      assetsDir = ./home/assets;
+      vmtestLuksPasswordFile = "${nixpkgs.legacyPackages.${system}.writeText "luks-vmtest-password"
+        "disko"
+      }";
     in
     {
-      # Host factory. A consumer calls `lib.mkHost { hostname; username;
-      # hostModule; homeModule; assetsDir; hostSettings; }` per host. See
-      # lib/mk-host.nix for the full argument contract.
       lib = {
-        mkHost = import ./lib/mk-host.nix { inherit inputs; };
+        inherit mkHost mkHomeHost;
         mkDisko = import ./lib/mk-disko.nix;
       };
 
@@ -79,6 +83,72 @@
       packages.${system} = {
         dwm = pkgs.dwm;
         dwm-session = pkgs.dwm-session;
+      };
+
+      nixosConfigurations = {
+        orion = mkHost {
+          hostname = "orion";
+          username = gear.onyx.username;
+          hostModule = ./hosts/orion;
+          homeModule = ./hosts/orion/home.nix;
+          inherit assetsDir;
+          hostSettings = gear.onyx.hostSettings // {
+            vmSshPort = 2221;
+          };
+        };
+
+        lyra = mkHost {
+          hostname = "lyra";
+          username = gear.quartz.username;
+          hostModule = ./hosts/lyra;
+          homeModule = ./hosts/lyra/home.nix;
+          inherit assetsDir;
+          hostSettings = gear.quartz.hostSettings // {
+            vmSshPort = 2222;
+          };
+        };
+
+        orion-vmtest = mkHost {
+          hostname = "orion";
+          username = gear.onyx.username;
+          hostModule = ./hosts/orion;
+          homeModule = ./hosts/orion/home.nix;
+          inherit assetsDir;
+          hostSettings = gear.onyx.hostSettings // {
+            vmSshPort = 2221;
+          };
+          luksPasswordFile = vmtestLuksPasswordFile;
+        };
+
+        lyra-vmtest = mkHost {
+          hostname = "lyra";
+          username = gear.quartz.username;
+          hostModule = ./hosts/lyra;
+          homeModule = ./hosts/lyra/home.nix;
+          inherit assetsDir;
+          hostSettings = gear.quartz.hostSettings // {
+            vmSshPort = 2222;
+          };
+          luksPasswordFile = vmtestLuksPasswordFile;
+        };
+      };
+
+      homeConfigurations = {
+        "gubasso@nova" = mkHomeHost {
+          hostname = "nova";
+          username = gear.onyx.username;
+          homeModule = ./hosts/nova/home.nix;
+          inherit assetsDir;
+          hostSettings = gear.onyx.hostSettings;
+        };
+
+        "gbasso@tumblesuse" = mkHomeHost {
+          hostname = "tumblesuse";
+          username = gear.quartz.username;
+          homeModule = ./hosts/tumblesuse/home.nix;
+          inherit assetsDir;
+          hostSettings = gear.quartz.hostSettings;
+        };
       };
 
       formatter.${system} = pkgs.nixfmt-rfc-style;

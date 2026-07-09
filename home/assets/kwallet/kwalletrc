@@ -1,0 +1,11 @@
+[Wallet]
+Enabled=true
+First Use=false
+Close When Idle=false
+Close on Screensaver=false
+Default Wallet=kdewallet
+Leave Open=true
+Prompt on Open=false
+
+[org.freedesktop.secrets]
+apiEnabled=true

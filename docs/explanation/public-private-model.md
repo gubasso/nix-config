@@ -13,7 +13,6 @@ Two repositories, one dependency edge:
   - packages.*                                             - home/assets/** (dotfiles, location)
   (no nixosConfigurations)                                 - .sops.yaml + secrets/** (encrypted)
 ```
-
 The edge points **one way**: the consumer depends on the framework; the framework
 never references the consumer. That is what "the public repo feeds from personal
 info internally" means in practice — personal data flows *into* `mkHost` from the

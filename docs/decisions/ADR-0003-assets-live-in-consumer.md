@@ -38,5 +38,6 @@ reusable module structure and ships **zero** personal files; the consumer's
 
 ## Status
 
-Implemented across `modules/home/*.nix` (`assetsDir` arg) and `lib/mk-host.nix`
-(threads `assetsDir`).
+Superseded by [ADR-0005](ADR-0005-assets-live-in-consolidated-repo.md). The
+`assetsDir` module contract remains, but the concrete asset tree now lives in
+this consolidated repo at `home/assets/`.

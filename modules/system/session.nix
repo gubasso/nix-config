@@ -5,14 +5,14 @@
 }:
 
 let
-  kwalletPackage =
-    lib.attrByPath [ "kdePackages" "kwallet" ] (
-      lib.attrByPath [ "libsForQt5" "kwallet" ] (throw "No kwallet package found in nixpkgs") pkgs
-    ) pkgs;
-  kwalletPam =
-    lib.attrByPath [ "kdePackages" "kwallet-pam" ] (
-      lib.attrByPath [ "libsForQt5" "kwallet-pam" ] (throw "No kwallet-pam package found in nixpkgs") pkgs
-    ) pkgs;
+  kwalletPackage = lib.attrByPath [ "kdePackages" "kwallet" ] (lib.attrByPath [
+    "libsForQt5"
+    "kwallet"
+  ] (throw "No kwallet package found in nixpkgs") pkgs) pkgs;
+  kwalletPam = lib.attrByPath [ "kdePackages" "kwallet-pam" ] (lib.attrByPath [
+    "libsForQt5"
+    "kwallet-pam"
+  ] (throw "No kwallet-pam package found in nixpkgs") pkgs) pkgs;
 in
 {
   services.xserver = {

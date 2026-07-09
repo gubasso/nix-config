@@ -2,10 +2,10 @@
 
 let
   lib = pkgs.lib;
-  kwalletPam =
-    lib.attrByPath [ "kdePackages" "kwallet-pam" ] (
-      lib.attrByPath [ "libsForQt5" "kwallet-pam" ] (throw "No kwallet-pam package found in nixpkgs") pkgs
-    ) pkgs;
+  kwalletPam = lib.attrByPath [ "kdePackages" "kwallet-pam" ] (lib.attrByPath [
+    "libsForQt5"
+    "kwallet-pam"
+  ] (throw "No kwallet-pam package found in nixpkgs") pkgs) pkgs;
 
   pamKwalletInit = "${kwalletPam}/libexec/pam_kwallet_init";
   xsecurelockDimmer = "${pkgs.xsecurelock}/libexec/xsecurelock/dimmer";

@@ -1,0 +1,7 @@
+{
+  "file_format_version": "1.0.0",
+  "ICD": {
+    "library_path": "/nonexistent/vulkan-disabled-by-dotfiles.so",
+    "api_version": "1.0.0"
+  }
+}

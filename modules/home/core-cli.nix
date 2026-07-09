@@ -1,7 +1,12 @@
 # CLI shell base: bash + starship + the terminal tool belt, plus the config
 # assets they read. Asset files come from the consumer's tree via `assetsDir`
 # (threaded by lib/mk-host.nix); `hostname` selects the per-host bash fragment.
-{ pkgs, hostname, assetsDir, ... }:
+{
+  pkgs,
+  hostname,
+  assetsDir,
+  ...
+}:
 
 {
   programs.bash = {
@@ -63,6 +68,7 @@
     ripgrep
     trash-cli
     yazi
+    yt-dlp
   ];
 
   # Per-host bash fragment; the consumer's assetsDir must carry
@@ -70,13 +76,20 @@
   xdg.configFile."bash/hosts/${hostname}.bash".source = assetsDir + "/bash/hosts/${hostname}.bash";
   xdg.configFile."starship.toml".source = assetsDir + "/starship/starship.toml";
   xdg.configFile."starship-tty.toml".source = assetsDir + "/starship/starship-tty.toml";
+  xdg.configFile."git/allowed_signers".source = assetsDir + "/git/allowed_signers";
+  xdg.configFile."direnv/direnvrc".source = assetsDir + "/direnv/direnvrc";
+  xdg.configFile."direnv/direnv.toml".source = assetsDir + "/direnv/direnv.toml";
   xdg.configFile."nvim".source = assetsDir + "/nvim";
   xdg.configFile."yazi/yazi.toml".source = assetsDir + "/yazi/yazi.toml";
   xdg.configFile."yazi/init.lua".source = assetsDir + "/yazi/init.lua";
   xdg.configFile."yazi/theme.toml".source = assetsDir + "/yazi/theme.toml";
+  xdg.configFile."yazi/package.toml".source = assetsDir + "/yazi/package.toml";
   # theme.toml selects the `everforest-medium` flavor, which yazi loads from
   # ~/.config/yazi/flavors/everforest-medium.yazi/. Vendor it so the flavor
   # reference resolves on a fresh activation.
   xdg.configFile."yazi/flavors/everforest-medium.yazi".source =
     assetsDir + "/yazi/flavors/everforest-medium.yazi";
+  xdg.configFile."yt-dlp/config".source = assetsDir + "/yt-dlp/config";
+  xdg.configFile."gnupg/gpg-agent.conf".source = assetsDir + "/gpg/gpg-agent.conf";
+  home.file.".ssh/config".source = assetsDir + "/ssh/config";
 }

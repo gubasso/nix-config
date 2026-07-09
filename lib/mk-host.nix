@@ -1,22 +1,19 @@
-# Host factory (public framework). Wires the shared module set once and threads
-# per-host identity + data through specialArgs. A consumer flake (e.g. the
-# private nix-secrets) calls this once per host; it never lives here.
+# Host factory. Wires the shared module set once and threads per-host identity
+# and data through specialArgs.
 #
 # The shared system modules and the Home Manager base are injected below from
-# THIS repo, so a consumer host only supplies what is genuinely per-machine:
-# its hardware profile, disk layout, identity, and assets. Nothing in a consumer
-# module needs to reference `inputs.nix-config` — everything shared arrives
-# either as an injected module or via specialArgs.
+# this repo, so a host only supplies what is genuinely per-machine: its hardware
+# profile, disk layout, identity, and assets.
 #
 # Args (curried): { inputs } (bound by this flake) then a per-host attrset:
 #   hostname     - NixOS networking.hostName; also a specialArg for modules.
 #   username     - primary user; threaded to system modules and Home Manager.
-#   hostModule   - path/module for this host (hosts/<name>/default.nix in the
-#                  consumer): hardware import, disko, packages, user, stateVersion.
+#   hostModule   - path/module for this host (hosts/<name>/default.nix):
+#                  hardware import, disko, packages, user, stateVersion.
 #   homeModule   - path/module for this host's Home Manager extras
 #                  (hosts/<name>/home.nix). The shared home base is injected, so
 #                  this only carries host-only home config.
-#   assetsDir    - path to the consumer's Home Manager asset tree (dotfiles).
+#   assetsDir    - path to the consolidated Home Manager asset tree (dotfiles).
 #                  Threaded to home modules, which read files as `assetsDir + "/…"`.
 #   hostSettings - per-host data attrset (e.g. { dpi = 192; scale = 2; }) consumed
 #                  by modules/home/graphics.nix.
@@ -54,16 +51,16 @@ inputs.nixpkgs.lib.nixosSystem {
       luksPasswordFile
       hostSettings
       ;
-    # Shared disko template exposed as a function so a consumer's
+    # Shared disko template exposed as a function so a host's
     # hosts/<name>/disko.nix stays a thin call with no cross-flake import.
     mkDisko = import ./mk-disko.nix;
   };
 
   modules = [
-    # Per-host module supplied by the consumer.
+    # Per-host module supplied by this repo.
     hostModule
 
-    # Shared system modules (this repo). A consumer host imports none of these.
+    # Shared system modules. A host imports none of these by hand.
     ../modules/system/base.nix
     ../modules/system/boot.nix
     ../modules/system/users.nix
@@ -92,7 +89,7 @@ inputs.nixpkgs.lib.nixosSystem {
           assetsDir
           ;
       };
-      # Shared Home Manager base (this repo) + the consumer's host-only extras.
+      # Shared Home Manager base + the host-only extras.
       home-manager.users.${username}.imports = [
         ../modules/home/common.nix
         homeModule

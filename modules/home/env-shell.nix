@@ -23,11 +23,14 @@
     "$HOME/.cargo/bin"
   ];
 
-  xdg.configFile."environment.d/50-dotfiles.conf".source = assetsDir + "/environment.d/50-dotfiles.conf";
-  xdg.configFile."environment.d/50-docs-n-notes.conf".source = assetsDir + "/environment.d/50-docs-n-notes.conf";
+  xdg.configFile."environment.d/50-dotfiles.conf".source =
+    assetsDir + "/environment.d/50-dotfiles.conf";
+  xdg.configFile."environment.d/50-docs-n-notes.conf".source =
+    assetsDir + "/environment.d/50-docs-n-notes.conf";
   xdg.configFile."environment.d/50-editor.conf".source = assetsDir + "/environment.d/50-editor.conf";
   xdg.configFile."environment.d/50-paths.conf".source = assetsDir + "/environment.d/50-paths.conf";
-  xdg.configFile."environment.d/60-kwallet-ssh.conf".source = assetsDir + "/environment.d/60-kwallet-ssh.conf";
+  xdg.configFile."environment.d/60-kwallet-ssh.conf".source =
+    assetsDir + "/environment.d/60-kwallet-ssh.conf";
   xdg.configFile."environment.d/60-gpg.conf".source = assetsDir + "/environment.d/60-gpg.conf";
 
   # Portable TTY/SSH fallback body (sources environment.d, ruby gem-bin cache,

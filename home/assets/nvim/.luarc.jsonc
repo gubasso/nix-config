@@ -1,0 +1,7 @@
+{
+  // https://github.com/LuaLS/vscode-lua/wiki/Settings#lua-language-server-settings
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "Lua.runtime.version": "LuaJIT",
+  "Lua.diagnostics.globals": ["vim"],
+  "Lua.workspace.checkThirdParty": false
+}

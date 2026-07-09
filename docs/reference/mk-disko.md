@@ -30,7 +30,6 @@ mkDisko {
   inherit luksPasswordFile;
 }
 ```
-
 ## Notes
 
 - The GPT partlabel `cryptlvm` is taken from the partition attribute name; disko

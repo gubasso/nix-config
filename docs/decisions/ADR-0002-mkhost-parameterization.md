@@ -37,4 +37,6 @@ of the shared modules and never mentions `inputs.nix-config`.
 ## Status
 
 Implemented in `lib/mk-host.nix`. See [reference/mk-host.md](../reference/mk-host.md)
-for the argument contract.
+for the argument contract. Standalone Home Manager hosts use the companion
+factory recorded in
+[ADR-0006](ADR-0006-standalone-home-manager-hosts.md).

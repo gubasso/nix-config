@@ -35,7 +35,7 @@ never embed personal data.
 
 ## Status
 
-Implemented. Enacted by `flake.nix` (no `nixosConfigurations`; exports `lib`,
-`nixosModules`, `homeModules`, `overlays`, `packages`) and `lib/mk-host.nix`.
-See [ADR-0002](ADR-0002-mkhost-parameterization.md) and
-[ADR-0003](ADR-0003-assets-live-in-consumer.md).
+Superseded by
+[ADR-0004](ADR-0004-consolidated-nix-config-source-of-truth.md). The
+framework/consumer split was reversed when `nix-secrets` was folded into this
+repo.

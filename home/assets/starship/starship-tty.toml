@@ -1,0 +1,25 @@
+format = """
+$directory\
+$git_branch\
+$git_status\
+$cmd_duration\
+$line_break\
+$character"""
+
+[character]
+success_symbol = "[>](bold purple)"
+error_symbol = "[>](bold red)"
+vimcmd_symbol = "[<](bold green)"
+
+[directory]
+read_only = " RO"
+style = "blue"
+
+[git_branch]
+symbol = ""
+format = "[$branch]($style)"
+style = "bright-black"
+
+[git_status]
+format = "[(*$conflicted$untracked$modified$staged$renamed$deleted)]($style)"
+style = "cyan"

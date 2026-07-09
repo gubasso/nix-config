@@ -1,0 +1,45 @@
+-- Disabled in favor of markview.nvim (see markview.lua)
+-- return {
+--   "MeanderingProgrammer/render-markdown.nvim",
+--   dependencies = {
+--     "nvim-treesitter/nvim-treesitter",
+--     "echasnovski/mini.icons",
+--   },
+--   ft = { "markdown" },
+--   keys = {
+--     { "<leader>mv", "<cmd>RenderMarkdown toggle<cr>", desc = "Toggle render-markdown" },
+--     { "<leader>ms", "<cmd>RenderMarkdown buf_toggle<cr>", desc = "Toggle render-markdown (buffer)" },
+--     { "<leader>me", "<cmd>RenderMarkdown enable<cr>", desc = "Enable render-markdown" },
+--     { "<leader>mD", "<cmd>RenderMarkdown disable<cr>", desc = "Disable render-markdown" },
+--   },
+--   opts = {
+--     enabled = false,
+--     render_modes = { "n", "c", "t" },
+--     anti_conceal = { enabled = false },
+--     checkbox = {
+--       custom = {
+--         todo = { raw = "[-]", rendered = "󰥔 ", highlight = "RenderMarkdownTodo" },
+--         in_progress = { raw = "[/]", rendered = "󰦖 ", highlight = "RenderMarkdownTodo" },
+--         scheduled = { raw = "[<]", rendered = "󰸗 ", highlight = "RenderMarkdownInfo" },
+--         rescheduled = { raw = "[>]", rendered = "󰭹 ", highlight = "RenderMarkdownInfo" },
+--         question = { raw = "[?]", rendered = "󰋗 ", highlight = "RenderMarkdownWarn" },
+--         important = { raw = "[!]", rendered = "󰀦 ", highlight = "RenderMarkdownError" },
+--         star = { raw = "[*]", rendered = "󰓎 ", highlight = "RenderMarkdownWarn" },
+--         quote = { raw = "[\"" .. "]", rendered = "󰸥 ", highlight = "RenderMarkdownQuote" },
+--         location = { raw = "[l]", rendered = "󰍎 ", highlight = "RenderMarkdownInfo" },
+--         bookmark = { raw = "[b]", rendered = "󰃀 ", highlight = "RenderMarkdownHint" },
+--         idea = { raw = "[i]", rendered = "󰛨 ", highlight = "RenderMarkdownHint" },
+--         savings = { raw = "[S]", rendered = "󰴓 ", highlight = "RenderMarkdownSuccess" },
+--         information = { raw = "[I]", rendered = "󰋼 ", highlight = "RenderMarkdownInfo" },
+--         pro = { raw = "[p]", rendered = "󰐕 ", highlight = "RenderMarkdownSuccess" },
+--         con = { raw = "[c]", rendered = "󰍴 ", highlight = "RenderMarkdownError" },
+--         fire = { raw = "[f]", rendered = "󰈸 ", highlight = "RenderMarkdownError" },
+--         key = { raw = "[k]", rendered = "󰌆 ", highlight = "RenderMarkdownWarn" },
+--         win = { raw = "[w]", rendered = "󰏆 ", highlight = "RenderMarkdownSuccess" },
+--         up = { raw = "[u]", rendered = "󰁞 ", highlight = "RenderMarkdownInfo" },
+--         down = { raw = "[d]", rendered = "󰁆 ", highlight = "RenderMarkdownHint" },
+--       },
+--     },
+--   },
+-- }
+return {}

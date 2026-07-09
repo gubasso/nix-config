@@ -1,73 +1,49 @@
 # nix-config
 
-A reusable NixOS + Home Manager **framework**: a host factory, shared system and
-Home Manager modules, an overlay, and packages. It carries no concrete hosts, no
-identity, and no secrets. A private consumer flake (`nix-secrets`) imports this
-one, supplies per-machine hosts + identity + assets, and calls `lib.mkHost`.
+Consolidated NixOS + Home Manager source of truth for the `onyx` and `quartz`
+gear. This repo owns concrete hosts, shared modules, Home Manager assets,
+hardware profiles, overlays, packages, and sops-encrypted secret structure.
 
-```text
-nix-config (public, this repo)          nix-secrets (private consumer)
-  lib.mkHost / lib.mkDisko       <────    inputs.nix-config.url = github:gubasso/nix-config
-  nixosModules.{system-*, vm}             nixosConfigurations.<host> = nix-config.lib.mkHost { … }
-  homeModules.{common, …}                 hosts/<host>/, modules/hardware/, home/assets/, secrets/
-  overlays.default
-  packages.{dwm, dwm-session}
-```
-
-## What it exports
+## Outputs
 
 | Output | Purpose |
 | --- | --- |
-| `lib.mkHost` | Host factory. Injects the shared module set and threads identity/data. |
+| `lib.mkHost` | NixOS host factory for `nixosConfigurations`. |
+| `lib.mkHomeHost` | Standalone Home Manager host factory for non-NixOS hosts. |
 | `lib.mkDisko` | Shared LUKS-on-LVM disko layout template. |
-| `nixosModules.*` | System modules (`base`, `boot`, `users`, `secrets`, `power`, `audio`, `network`, `session`, `vm`). |
-| `homeModules.*` | Home Manager modules (`common`, `core-cli`, `desktop`, `env-shell`, `graphics`, `keyring`). |
-| `overlays.default` | `dwm` (personal fork) + `dwm-session` scripts. |
+| `nixosConfigurations.*` | `orion`, `lyra`, `orion-vmtest`, `lyra-vmtest`. |
+| `homeConfigurations.*` | `gubasso@nova`, `gbasso@tumblesuse`. |
+| `nixosModules.*` | Shared system modules. |
+| `homeModules.*` | Shared Home Manager modules. |
+| `overlays.default` | `dwm` and `dwm-session`. |
 | `packages.x86_64-linux.*` | `dwm`, `dwm-session`. |
 
-## Using it
+## Model
 
-See [docs/guides/bootstrap-your-nix-secrets.md](docs/guides/bootstrap-your-nix-secrets.md)
-for the full consumer walkthrough. In short, a consumer host is:
+Gear owns user identity: `onyx -> gubasso`, `quartz -> gbasso`. Hostnames select
+the OS target: `nova` and `tumblesuse` are standalone Home Manager on native
+Arch/openSUSE; `orion` and `lyra` are NixOS targets.
 
-```nix
-nixosConfigurations.myhost = inputs.nix-config.lib.mkHost {
-  hostname = "myhost";
-  username = "me";
-  hostModule = ./hosts/myhost;        # hardware + disko + user + stateVersion
-  homeModule = ./hosts/myhost/home.nix;
-  assetsDir = ./home/assets;          # your Home Manager dotfile tree
-  hostSettings = { dpi = 192; scale = 2; };
-};
-```
-
-The consumer imports **none** of the shared modules by hand — `mkHost` injects
-them. Everything a host module needs (`inputs`, `mkDisko`, `hostSettings`,
-`assetsDir`) arrives via `specialArgs`.
-
-## Design
-
-- **Framework, not config.** No `nixosConfigurations` here; the public repo
-  cannot build a concrete host by itself. See
-  [docs/explanation/public-private-model.md](docs/explanation/public-private-model.md).
-- **Assets live in the consumer.** Home modules read files from `assetsDir`, so
-  personal dotfiles never enter this repo.
-- **dwm from a personal fork.** `pkgs/dwm` points `src` at the `dwm-fork` input
-  (`github:gubasso/dwm/rice`); everything else inherits from nixpkgs.
-
-## Docs
-
-Organized by [Diátaxis](https://diataxis.fr/). Start with [docs/README.md](docs/README.md);
-coding agents load [docs/AGENTS.md](docs/AGENTS.md) first.
+Home Manager modules copy verbatim files from `home/assets/` through the
+`assetsDir` argument. Secret values live only as sops-encrypted files under
+`secrets/`; age private keys and decrypted material stay outside the repo.
 
 ## Validation
-
-From a Nix-capable environment:
 
 ```bash
 nix flake check
 nix build .#packages.x86_64-linux.dwm-session
+home-manager build --flake .#gubasso@nova
+home-manager build --flake .#gbasso@tumblesuse
+nix build .#nixosConfigurations.orion.config.system.build.toplevel
+nix build .#nixosConfigurations.lyra.config.system.build.toplevel
+nix fmt
 ```
 
-New files must be `git add`-ed before `nix flake check` — flakes only see
-git-tracked files.
+Flakes only see git-tracked files. New files in this migration must be added by
+a human before full flake validation is meaningful.
+
+## Docs
+
+Start with [docs/README.md](docs/README.md). Coding agents should also load
+[docs/AGENTS.md](docs/AGENTS.md).

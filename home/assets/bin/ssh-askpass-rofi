@@ -1,0 +1,56 @@
+#!/bin/sh
+# ssh-askpass-rofi — rofi-based SSH askpass with optional Secret Service cache
+set -eu
+
+prompt="${1:-Enter passphrase:}"
+
+case "$prompt" in
+  *"(yes/no"*)
+    answer=$(printf 'yes\nno\n' | rofi -dmenu -i -p "SSH" -mesg "$prompt" -only-match) || exit 1
+    printf '%s\n' "$answer"
+    ;;
+  *)
+    # Extract key path from standard OpenSSH prompts:
+    # - "Enter passphrase for /path/to/key:"
+    # - "Enter passphrase for key '/path/to/key':"
+    key_id=$(printf '%s' "$prompt" | sed -n "s/.*for[[:space:]]*\(key[[:space:]]\)\{0,1\}'\{0,1\}\([^':][^':]*\)'\{0,1\}[[:space:]]*:.*/\2/p")
+    key_id="${key_id:-$prompt}"
+
+    runtime_dir="${XDG_RUNTIME_DIR:-/tmp}"
+    safe_key=$(printf '%s' "$key_id" | tr -cs 'a-zA-Z0-9._-' '_')
+    marker="$runtime_dir/ssh-askpass-retry-$safe_key"
+
+    has_secret_tool=false
+    command -v secret-tool >/dev/null 2>&1 && has_secret_tool=true
+
+    if [ "$has_secret_tool" = true ]; then
+      now=$(date +%s)
+
+      if [ -f "$marker" ]; then
+        read -r marker_time <"$marker" || marker_time=0
+        rm -f "$marker"
+        # Retry within 30s means the cached passphrase was wrong — clear it.
+        if [ "$marker_time" -gt 0 ] && [ $((now - marker_time)) -le 30 ]; then
+          secret-tool clear service ssh key_id "$key_id" >/dev/null 2>&1 || true
+        fi
+      fi
+
+      cached=$(secret-tool lookup service ssh key_id "$key_id" 2>/dev/null || true)
+      if [ -n "$cached" ]; then
+        printf '%s\n' "$now" >"$marker"
+        printf '%s\n' "$cached"
+        exit 0
+      fi
+    fi
+
+    answer=$(rofi -dmenu -password -p "SSH" -mesg "$prompt" </dev/null) || exit 1
+
+    if [ "$has_secret_tool" = true ]; then
+      printf '%s' "$answer" | secret-tool store \
+        --label "SSH key: $key_id" service ssh key_id "$key_id" >/dev/null 2>&1 || true
+      rm -f "$marker"
+    fi
+
+    printf '%s\n' "$answer"
+    ;;
+esac

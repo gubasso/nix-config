@@ -1,0 +1,12 @@
+# ~/.config/direnv/direnv.toml
+#
+# Trust project .envrc files non-interactively: any .envrc whose absolute path
+# starts with one of these prefixes loads WITHOUT `direnv allow`. Trailing slash =
+# hard directory boundary.
+# log_format = "" disables direnv's own status logging (a value like "-" makes Go
+# emit %!(MISSING) garbage on every load).
+[global]
+log_format = ""
+
+[whitelist]
+prefix = ["~/Projects/"]

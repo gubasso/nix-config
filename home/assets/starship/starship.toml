@@ -1,0 +1,92 @@
+format = """
+${env_var.IN_VM}\
+$container\
+$nix_shell\
+$directory\
+$git_branch\
+$git_state\
+$git_status\
+$cmd_duration\
+${custom.venv_poetry}${custom.venv_plain}\
+$line_break\
+$character"""
+
+[directory]
+truncation_length = 2
+read_only = " 󰌾"
+style = "blue"
+
+[character]
+success_symbol = "[❯](bright-purple)"
+error_symbol = "[❯](red)"
+vimcmd_symbol = "[❮](green)"
+
+[container]
+symbol = "🧊"
+style = "bright-black"
+format = "[$symbol $name]($style) "
+
+# VM cue. IN_VM is set ONLY inside the throwaway QEMU VM (environment.variables
+# in nix/modules/vm.nix, vmVariant-only). The env_var module renders only when
+# the var is set, so metal shows nothing. starship's [container] module detects
+# containers only -- it never fires for full QEMU/KVM, hence this dedicated cue.
+[env_var.IN_VM]
+variable = "IN_VM"
+symbol = "🧪 "
+format = "[$symbol$env_value]($style) "
+style = "bold yellow"
+
+[git_branch]
+symbol = " "
+format = "[$branch]($style)"
+style = "bright-black"
+
+[git_status]
+format = "[[(*$conflicted$untracked$modified$staged$renamed$deleted)](218) ($ahead_behind$stashed)]($style)"
+style = "cyan"
+conflicted = "​"
+untracked = "​"
+modified = "​"
+staged = "​"
+renamed = "​"
+deleted = "​"
+stashed = "≡"
+
+[git_state]
+format = '\([$state( $progress_current/$progress_total)]($style)\) '
+style = "bright-black"
+
+[cmd_duration]
+format = "[$duration]($style) "
+style = "yellow"
+
+# Nix shell indicator. `heuristic` scans PATH for /nix/store because
+# `nix develop` / nix-direnv `use flake` shells often don't set IN_NIX_SHELL.
+[nix_shell]
+heuristic = true
+symbol = "❄ "
+style = "blue"
+format = "[$symbol]($style)"
+
+# venv indicators. Keyed on $VIRTUAL_ENV (which direnv exports via the project's
+# .envrc), so they show in ANY directory while the venv is active — unlike the
+# [python] module, which only renders where a Python file is present.
+# Poetry builds its env via the `virtualenv` library, which stamps a
+# `virtualenv = <ver>` key into pyvenv.cfg; a stock `python -m venv` does not.
+# That check is cwd-independent; POETRY_ACTIVE / poetry.lock are fallbacks.
+# The two modules are mutually exclusive (plain = the negation of poetry).
+[custom.venv_poetry]
+when = '''test -n "$VIRTUAL_ENV" && { test -n "$POETRY_ACTIVE" || grep -qi '^virtualenv[[:space:]]*=' "$VIRTUAL_ENV/pyvenv.cfg" 2>/dev/null || { test -f poetry.lock && test -f pyproject.toml; }; }'''
+command = 'true'
+shell = ["bash", "--noprofile", "--norc"]
+symbol = "📜"
+style = "yellow"
+format = "[$symbol]($style) "
+
+[custom.venv_plain]
+when = '''test -n "$VIRTUAL_ENV" && test -z "$POETRY_ACTIVE" && ! grep -qi '^virtualenv[[:space:]]*=' "$VIRTUAL_ENV/pyvenv.cfg" 2>/dev/null && ! { test -f poetry.lock && test -f pyproject.toml; }'''
+command = 'true'
+shell = ["bash", "--noprofile", "--norc"]
+symbol = "🐍"
+style = "yellow"
+format = "[$symbol]($style) "

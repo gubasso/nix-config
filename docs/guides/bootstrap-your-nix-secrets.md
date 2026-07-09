@@ -22,7 +22,6 @@ secrets; this framework holds everything shared.
   };
 }
 ```
-
 The consumer needs **only** `nix-config` as an input — nixpkgs, home-manager,
 disko, sops-nix, and nixos-hardware all arrive transitively through it. `mkHost`
 runs against `nix-config`'s pinned nixpkgs.
@@ -53,7 +52,6 @@ profile (local to the consumer). Everything else (`base`, `boot`, `users`,
   system.stateVersion = "25.11";
 }
 ```
-
 `hosts/myhost/disko.nix` — a thin call into the injected `mkDisko`
 (from `specialArgs`, **not** a relative import):
 
@@ -66,14 +64,12 @@ mkDisko {
   inherit luksPasswordFile;
 }
 ```
-
 `hosts/myhost/home.nix` — the shared home base is injected, so this only holds
 host-only extras:
 
 ```nix
 { ... }: { }
 ```
-
 ## 3. Assets
 
 Put your dotfiles under `home/assets/` mirroring the paths the home modules
@@ -93,7 +89,6 @@ real age recipients, and add encrypted files under `secrets/<host>/`. The
 ```bash
 sudo nixos-rebuild switch --flake .#myhost
 ```
-
 Local dev before this framework is pushed anywhere:
 
 ```bash

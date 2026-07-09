@@ -1,0 +1,17 @@
+keys:
+  - &orion_age age1replace-with-orion-host-recipient
+  - &lyra_age age1replace-with-lyra-host-recipient
+  - &nova_age age1replace-with-nova-user-recipient
+  - &tumblesuse_age age1replace-with-tumblesuse-user-recipient
+
+creation_rules:
+  - path_regex: secrets/orion/.*\.(yaml|json|env|ini)$
+    key_groups: [ { age: [ *orion_age ] } ]
+  - path_regex: secrets/lyra/.*\.(yaml|json|env|ini)$
+    key_groups: [ { age: [ *lyra_age ] } ]
+  - path_regex: secrets/nova/.*\.(yaml|json|env|ini)$
+    key_groups: [ { age: [ *nova_age ] } ]
+  - path_regex: secrets/tumblesuse/.*\.(yaml|json|env|ini)$
+    key_groups: [ { age: [ *tumblesuse_age ] } ]
+  - path_regex: secrets/shared/.*\.(yaml|json|env|ini)$
+    key_groups: [ { age: [ *orion_age, *lyra_age, *nova_age, *tumblesuse_age ] } ]

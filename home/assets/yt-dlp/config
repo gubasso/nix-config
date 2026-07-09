@@ -1,0 +1,2 @@
+# use Bun as the JavaScript runtime
+--js-runtimes bun

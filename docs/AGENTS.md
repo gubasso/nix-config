@@ -3,74 +3,55 @@ digest-of: nix-config/docs
 last-synced: 2026-07-09
 source-files:
   - README.md
-  - explanation/public-private-model.md
-  - guides/bootstrap-your-nix-secrets.md
+  - reference/hosts.md
   - reference/mk-host.md
   - reference/mk-disko.md
   - decisions/ADR-0001-public-private-split.md
   - decisions/ADR-0002-mkhost-parameterization.md
   - decisions/ADR-0003-assets-live-in-consumer.md
+  - decisions/ADR-0004-consolidated-nix-config-source-of-truth.md
+  - decisions/ADR-0005-assets-live-in-consolidated-repo.md
+  - decisions/ADR-0006-standalone-home-manager-hosts.md
+  - decisions/ADR-0007-sops-recipients-for-nixos-and-standalone-hm.md
 ---
 
 # AGENTS
 
 ## Scope
 
-How the `nix-config` framework is structured and consumed. Load this digest
-first, then read the zone file that owns the change. Zone files are
-authoritative; this digest never introduces new rules.
+Documentation for the consolidated `nix-config` repo. Load this digest first,
+then read the zone file that owns the change. Zone files are authoritative.
 
-## The one rule
+## Key Rules
 
-**No personal data in this repo.** Usernames, real hostnames-as-config, age
-recipients, disk paths, location, and secrets all live in the private consumer
-(`nix-secrets`). Modules stay identity- and asset-agnostic.
+- Plaintext hostnames, usernames, gear names, and hardware identity are accepted.
+- Secret values must be sops-encrypted at rest; age private keys are never
+  committed.
+- Gear identity is fixed: `onyx -> gubasso`, `quartz -> gbasso`.
+- New files must be git-tracked by a human before flake validation can see them.
 
-## Key points
+## Key Points
 
-### Explanation — the model
+- `flake.nix` emits NixOS configs for `orion`, `lyra`, `orion-vmtest`, and
+  `lyra-vmtest`.
+- `flake.nix` emits standalone Home Manager configs for `gubasso@nova` and
+  `gbasso@tumblesuse`.
+- `mkHost` remains the NixOS factory; `mkHomeHost` is the standalone Home
+  Manager sibling.
+- Verbatim Home Manager assets live in `home/assets/`.
+- `.sops.yaml` defines host scopes for `orion`, `lyra`, `nova`, `tumblesuse`,
+  plus sparse `shared`.
 
-- Two repos: public `nix-config` (framework) + private `nix-secrets` (hosts,
-  identity, secrets). Public has **no `nixosConfigurations`**.
-- The consumer imports `nix-config` as a flake input and calls `lib.mkHost` once
-  per host. `mkHost` injects the shared module set; the consumer imports none of
-  it by hand.
+## Source Map
 
-### Reference — the API
+| Topic | File |
+| --- | --- |
+| Host inventory | `reference/hosts.md` |
+| NixOS factory | `reference/mk-host.md` |
+| Disk layout helper | `reference/mk-disko.md` |
+| Recorded decisions | `decisions/ADR-000*.md` |
 
-- `lib.mkHost { hostname, username, hostModule, homeModule, assetsDir,
-  hostSettings ? {}, system ? "x86_64-linux", diskDevice ? "/dev/nvme0n1",
-  luksPasswordFile ? null, extraModules ? [] }` → a `nixosSystem`.
-- `specialArgs` threaded to system modules: `inputs, hostname, username,
-  diskDevice, luksPasswordFile, hostSettings, mkDisko`.
-- `extraSpecialArgs` threaded to home modules: `inputs, hostname, username,
-  hostSettings, assetsDir`.
-- `lib.mkDisko { device, vgName, diskName, swapSize ? "32G", luksPasswordFile ?
-  null }` → LUKS-on-LVM disko layout.
+## Maintenance Notes
 
-### Guides — consuming
-
-- A consumer host = `mkHost` call + `hosts/<name>/{default,disko,home,packages}.nix`
-  + a `modules/hardware/<profile>.nix` + `home/assets/` + `hostSettings`.
-- `hosts/<name>/disko.nix` calls `mkDisko` (from `specialArgs`), not a relative import.
-
-### Decisions
-
-- ADR-0001 public framework / private consumer · ADR-0002 mkHost parameterization
-  (`hostModule`/`homeModule`/`assetsDir`/`hostSettings`) · ADR-0003 assets live in
-  the consumer. All Implemented; lean; never deleted.
-
-## Source map
-
-| Topic                              | File                                          |
-| ---------------------------------- | --------------------------------------------- |
-| Public/private split, why          | `explanation/public-private-model.md`         |
-| Consumer walkthrough               | `guides/bootstrap-your-nix-secrets.md`        |
-| `mkHost` argument contract         | `reference/mk-host.md`                         |
-| `mkDisko` argument contract        | `reference/mk-disko.md`                        |
-| Recorded decisions                 | `decisions/ADR-000*.md`                        |
-
-## Maintenance notes
-
-- Regenerate when any `source-files` entry changes; introduce no new rules here.
-- When digest and a zone file disagree, the zone file wins; regenerate the digest.
+Regenerate when the source files above change. When this digest and a zone file
+disagree, the zone file wins.
