@@ -1,0 +1,20 @@
+# Example sops-nix layout. This framework carries NO real recipients; secrets
+# and their recipients live in the private consumer flake (nix-secrets).
+#
+# Copy this to `.sops.yaml` in your consumer repo, then replace each placeholder
+# with the real age recipient generated on that host at install time:
+#   age-keygen -y /var/lib/sops-nix/key.txt
+# Encrypted files live under secrets/<host>/.
+keys:
+  - &host1_age age1replace-with-host1-age-recipient
+  - &host2_age age1replace-with-host2-age-recipient
+
+creation_rules:
+  - path_regex: secrets/host1/.*\.(yaml|json|env|ini)$
+    key_groups:
+      - age:
+          - *host1_age
+  - path_regex: secrets/host2/.*\.(yaml|json|env|ini)$
+    key_groups:
+      - age:
+          - *host2_age

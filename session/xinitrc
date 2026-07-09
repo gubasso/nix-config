@@ -1,0 +1,80 @@
+#!/bin/sh
+
+userresources="$HOME/.Xresources"
+usermodmap="$HOME/.Xmodmap"
+
+if [ -f "$userresources" ]; then
+  xrdb -merge "$userresources"
+fi
+
+# X11 DPI / toolkit scaling -- single source of truth (Xft.dpi). profile.sh is
+# generated per-host by modules/home/graphics.nix and resolves VM vs metal at
+# runtime (systemd-detect-virt), setting GFX_DPI / GFX_SCALE / GFX_XSETTINGSD.
+# Dash-safe guard (see the xsecurelock env.conf note below for why). Applied
+# BEFORE any daemon/app starts so every child (and dwm-spawned apps) inherits it.
+gfxprofile="${XDG_CONFIG_HOME:-$HOME/.config}/graphics/profile.sh"
+# shellcheck disable=SC1090
+[ -r "$gfxprofile" ] && . "$gfxprofile"
+if [ -n "${GFX_DPI:-}" ]; then
+  printf 'Xft.dpi: %s\n' "$GFX_DPI" | xrdb -merge
+  export GDK_SCALE="$GFX_SCALE" GDK_DPI_SCALE=1.0
+  export QT_SCALE_FACTOR="$GFX_SCALE" QT_AUTO_SCREEN_SCALE_FACTOR=0
+fi
+
+if [ -f "$usermodmap" ]; then
+  xmodmap "$usermodmap"
+fi
+
+[ -f ~/.profile ] && . "$HOME/.profile"
+
+xsetroot -cursor_name left_ptr
+
+@pamKwalletInit@ &
+
+dbus-update-activation-environment --systemd \
+  DISPLAY \
+  XAUTHORITY \
+  DBUS_SESSION_BUS_ADDRESS \
+  SSH_AUTH_SOCK \
+  SSH_ASKPASS \
+  SSH_ASKPASS_REQUIRE
+
+xset s 300 5
+# Disable X server DPMS. On nova this avoids the Meteor Lake eDP black-screen
+# idle wedge; keep the same conservative X11 posture for orion.
+xset s noblank
+xset dpms 0 0 0
+xset -dpms
+
+# NB: a guarded `[ -r ] && .` -- NOT `. file 2>/dev/null || true`. Under /bin/sh
+# (dash), the `.` special built-in fatally aborts a non-interactive shell when
+# the file is missing, and `|| true` never runs -- which silently killed this
+# whole session before `exec startdwm` and looped greetd. The guard is safe in
+# dash and bash whether or not the file exists.
+envf="${XDG_CONFIG_HOME:-$HOME/.config}/xsecurelock/env.conf"
+set -a
+# shellcheck disable=SC1090
+[ -r "$envf" ] && . "$envf"
+set +a
+xss-lock -n @xsecurelockDimmer@ -l -- xsecurelock &
+
+# sxhkd is started here (not only from dwm's autostart.sh) because the orion
+# dwm derivation does not vendor the autostart patch this round, so the
+# autostart.sh hook never fires. Starting it from .xinitrc keeps the WM
+# keybind daemon alive regardless of the patch. If the autostart patch is
+# later committed to the dwm fork (github.com/gubasso/dwm @ rice), autostart.sh's
+# pkill+restart run() safely supersedes this on each dwm reload.
+pgrep -x sxhkd || sxhkd &
+pgrep -x xsettingsd || xsettingsd -c "${GFX_XSETTINGSD:-$HOME/.config/xsettingsd/xsettingsd-metal.conf}" &
+pgrep -x gammastep || gammastep &
+pgrep -x xbanish || xbanish -t 3 -s -i mod4 &
+pgrep -x nextcloud || nextcloud --background &
+pgrep -x keepassxc || keepassxc &
+pgrep -f polkit-gnome || @polkitAgent@ &
+# thunar is deliberately deferred to round 5's Home Manager app set.
+pgrep -f dwm-center-clock || dwm-center-clock &
+pgrep -f dwm-status-right || dwm-status-right &
+pgrep -f dock-audio || dock-audio &
+
+xsetroot -name ""
+exec startdwm

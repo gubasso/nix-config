@@ -1,0 +1,9 @@
+# Throwaway VM disk images created by `system.build.vm` (modules/vm.nix).
+*.qcow2
+
+# nix build result symlinks
+result
+result-*
+
+# docs-design: drafts live outside shipped docs
+/.draft/

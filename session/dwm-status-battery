@@ -1,0 +1,137 @@
+#!/bin/bash
+# Battery status module for dwm right bar.
+
+set -euo pipefail
+
+DWM_STATUS_LIB="${DWM_STATUS_LIB:-@dwmStatusLib@}"
+# shellcheck source=/dev/null
+source "$DWM_STATUS_LIB"
+
+DWM_STATUS_BAT_PATH="${DWM_STATUS_BAT_PATH:-/sys/class/power_supply/BAT0}"
+DWM_STATUS_BATTERY_POLL_INTERVAL="${DWM_STATUS_BATTERY_POLL_INTERVAL:-60}"
+
+OUT_FILE="$DWM_STATUS_DIR/battery"
+
+read_sysfs() {
+  local -n __out=$1
+  IFS= read -r __out <"$2" 2>/dev/null || __out="${3:-}"
+}
+
+battery_icon() {
+  local cap=$1
+  if ! [[ "$cap" =~ ^[0-9]+$ ]]; then
+    printf 'bat'
+    return
+  fi
+
+  if ((cap <= 10)); then
+    printf 'bat-critical'
+  elif ((cap <= 30)); then
+    printf 'bat-low'
+  elif ((cap <= 70)); then
+    printf 'bat'
+  else
+    printf 'bat-full'
+  fi
+}
+
+calc_eta() {
+  local mode=$1
+  local now full rate rem mins h m
+
+  if [[ -r "$DWM_STATUS_BAT_PATH/energy_now" ]]; then
+    read_sysfs now "$DWM_STATUS_BAT_PATH/energy_now" ""
+    read_sysfs full "$DWM_STATUS_BAT_PATH/energy_full" ""
+    read_sysfs rate "$DWM_STATUS_BAT_PATH/power_now" ""
+  elif [[ -r "$DWM_STATUS_BAT_PATH/charge_now" ]]; then
+    read_sysfs now "$DWM_STATUS_BAT_PATH/charge_now" ""
+    read_sysfs full "$DWM_STATUS_BAT_PATH/charge_full" ""
+    read_sysfs rate "$DWM_STATUS_BAT_PATH/current_now" ""
+  else
+    return 1
+  fi
+
+  [[ "$now" =~ ^[0-9]+$ ]] || return 1
+  [[ "$full" =~ ^[0-9]+$ ]] || return 1
+  [[ "$rate" =~ ^[0-9]+$ ]] || return 1
+  ((rate > 0)) || return 1
+
+  if [[ "$mode" == "charging" ]]; then
+    rem=$((full - now))
+  else
+    rem=$now
+  fi
+
+  ((rem > 0)) || {
+    printf '0:00'
+    return 0
+  }
+
+  mins=$((rem * 60 / rate))
+  h=$((mins / 60))
+  m=$((mins % 60))
+  printf '%d:%02d' "$h" "$m"
+}
+
+update_once() {
+  local cap status icon eta text
+
+  read_sysfs cap "$DWM_STATUS_BAT_PATH/capacity" "?"
+  read_sysfs status "$DWM_STATUS_BAT_PATH/status" "Unknown"
+
+  case "$status" in
+    Charging)
+      eta=$(calc_eta charging || true)
+      if [[ -n "$eta" ]]; then
+        text="charging ${cap}% ${eta}"
+      else
+        text="charging ${cap}%"
+      fi
+      ;;
+    "Not charging")
+      text="not-charging ${cap}%"
+      ;;
+    Full)
+      text="full"
+      ;;
+    *)
+      icon=$(battery_icon "$cap")
+      if [[ "$cap" =~ ^[0-9]+$ ]] && ((cap <= 10)); then
+        text="! ${icon} ${cap}%"
+      else
+        text="${icon} ${cap}%"
+      fi
+      ;;
+  esac
+
+  dwm_status_write "$OUT_FILE" "$text"
+}
+
+run_udev_loop() {
+  command -v udevadm >/dev/null 2>&1 || return 1
+
+  udevadm monitor --udev --subsystem-match=power_supply 2>/dev/null | while IFS= read -r _; do
+    sleep 0.3
+    update_once
+  done
+}
+
+trap 'exit 0' INT TERM
+
+dwm_status_init_dir
+
+if [[ ! -d "$DWM_STATUS_BAT_PATH" ]]; then
+  dwm_status_write "$OUT_FILE" ""
+  exit 0
+fi
+
+update_once
+
+if run_udev_loop; then
+  exit 0
+fi
+
+while true; do
+  sleep "$DWM_STATUS_BATTERY_POLL_INTERVAL"
+  update_once
+done

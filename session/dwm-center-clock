@@ -1,0 +1,11 @@
+#!/bin/bash
+# Sets _DWM_CENTER_TEXT on X root window every minute.
+
+set -euo pipefail
+trap 'xprop -root -remove _DWM_CENTER_TEXT 2>/dev/null; exit 0' INT TERM
+
+while true; do
+  xprop -root -format _DWM_CENTER_TEXT 8s \
+    -set _DWM_CENTER_TEXT "$(date '+%a %b %-d, %H:%M')"
+  sleep $((60 - $(date +%-S)))
+done

@@ -1,0 +1,81 @@
+#!/bin/bash
+# Wi-Fi alarm module for dwm right bar.
+
+set -euo pipefail
+
+DWM_STATUS_LIB="${DWM_STATUS_LIB:-@dwmStatusLib@}"
+# shellcheck source=/dev/null
+source "$DWM_STATUS_LIB"
+
+DWM_STATUS_WIFI_INTERVAL="${DWM_STATUS_WIFI_INTERVAL:-5}"
+DWM_STATUS_WIFI_WEAK_PCT="${DWM_STATUS_WIFI_WEAK_PCT:-30}"
+
+OUT_FILE="$DWM_STATUS_DIR/wifi"
+
+find_wifi_iface() {
+  local iface_path iface
+  for iface_path in /sys/class/net/*/wireless; do
+    [[ -d "$iface_path" ]] || continue
+    iface=${iface_path%/wireless}
+    iface=${iface##*/}
+    printf '%s' "$iface"
+    return 0
+  done
+  return 1
+}
+
+dbm_to_pct() {
+  local dbm=$1
+  local pct
+  pct=$(((dbm + 110) * 100 / 70))
+  ((pct < 0)) && pct=0
+  ((pct > 100)) && pct=100
+  printf '%d' "$pct"
+}
+
+update_once() {
+  local iface=$1
+  local link_line signal_dbm signal_pct text
+
+  link_line=$(iw dev "$iface" link 2>/dev/null || true)
+  if [[ -z "$link_line" || "$link_line" == *"Not connected."* ]]; then
+    dwm_status_write "$OUT_FILE" "no-wifi"
+    return
+  fi
+
+  signal_dbm=""
+  if [[ "$link_line" =~ signal:[[:space:]]*(-?[0-9]+)[[:space:]]*dBm ]]; then
+    signal_dbm="${BASH_REMATCH[1]}"
+  fi
+
+  if [[ -z "$signal_dbm" ]]; then
+    dwm_status_write "$OUT_FILE" "weak-wifi"
+    return
+  fi
+
+  signal_pct=$(dbm_to_pct "$signal_dbm")
+  text=""
+  if ((signal_pct < DWM_STATUS_WIFI_WEAK_PCT)); then
+    text="weak-wifi"
+  fi
+  dwm_status_write "$OUT_FILE" "$text"
+}
+
+trap 'exit 0' INT TERM
+
+dwm_status_init_dir
+
+if ! [[ "$DWM_STATUS_WIFI_WEAK_PCT" =~ ^[0-9]+$ ]]; then
+  DWM_STATUS_WIFI_WEAK_PCT=30
+fi
+
+iface=$(find_wifi_iface || true)
+if [[ -z "$iface" ]]; then
+  dwm_status_write "$OUT_FILE" ""
+  exit 0
+fi
+
+while true; do
+  update_once "$iface"
+  sleep "$DWM_STATUS_WIFI_INTERVAL"
+done

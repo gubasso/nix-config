@@ -1,0 +1,63 @@
+#!/bin/bash
+# Supervisor and aggregator for right-side dwm status modules.
+
+set -euo pipefail
+
+DWM_STATUS_READER_INTERVAL="${DWM_STATUS_READER_INTERVAL:-2}"
+DWM_STATUS_LIB="${DWM_STATUS_LIB:-@dwmStatusLib@}"
+# shellcheck source=/dev/null
+source "$DWM_STATUS_LIB"
+CHILD_PIDS=()
+
+start_module() {
+  local module_script=$1
+  "$module_script" &
+  CHILD_PIDS+=("$!")
+}
+
+cleanup() {
+  local pid
+  for pid in "${CHILD_PIDS[@]:-}"; do
+    kill "$pid" 2>/dev/null || true
+  done
+  wait "${CHILD_PIDS[@]:-}" 2>/dev/null || true
+
+  rm -f "$DWM_STATUS_DIR"/wifi "$DWM_STATUS_DIR"/battery 2>/dev/null || true
+  rmdir "$DWM_STATUS_DIR" 2>/dev/null || true
+}
+
+trap cleanup EXIT INT TERM
+
+dwm_status_init_dir
+
+start_module "dwm-status-wifi"
+start_module "dwm-status-battery"
+
+xsetroot -name ""
+
+prev=""
+while true; do
+  parts=()
+
+  for mod in wifi battery; do
+    file="$DWM_STATUS_DIR/$mod"
+    value=""
+    if [[ -r "$file" ]]; then
+      IFS= read -r value <"$file" || value=""
+    fi
+    [[ -n "$value" ]] && parts+=("$value")
+  done
+
+  curr=""
+  for i in "${!parts[@]}"; do
+    ((i > 0)) && curr+=" | "
+    curr+="${parts[$i]}"
+  done
+
+  if [[ "$curr" != "$prev" ]]; then
+    xsetroot -name "$curr"
+    prev="$curr"
+  fi
+
+  sleep "$DWM_STATUS_READER_INTERVAL"
+done
