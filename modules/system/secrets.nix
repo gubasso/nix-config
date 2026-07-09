@@ -4,17 +4,16 @@
   sops = {
     age.keyFile = "/var/lib/sops-nix/key.txt";
 
-    # No secrets declared yet. Keeping secrets out of Nix modules ensures no
-    # plaintext ever reaches /nix/store.
+    # No secrets declared here. Keeping secret declarations in the consumer
+    # (not this shared module) ensures no plaintext ever reaches /nix/store and
+    # keeps per-host recipients private.
     #
-    # TODO(round 6): replace nix/.sops.yaml's placeholder recipient
-    # (`age1replace-with-orion-age-recipient`) with the real orion age
-    # recipient, then add real encrypted files under nix/secrets/.
-    #
-    # Intended future shape for user-owned keyring/SSH/GPG material:
+    # In the consumer: replace the placeholder recipients in its .sops.yaml with
+    # real per-host age recipients, then add encrypted files under
+    # secrets/<host>/ and declare them, e.g.:
     # secrets."keyring/example.yaml" = {
-    #   sopsFile = ../../secrets/keyring/example.yaml;
-    #   owner = "gubasso";
+    #   sopsFile = ../../secrets/<host>/keyring/example.yaml;
+    #   owner = "youruser";
     #   group = "users";
     #   mode = "0400";
     # };

@@ -3,12 +3,13 @@
 # Everything is under `virtualisation.vmVariant`, so it ONLY affects the
 # throwaway QEMU VM and NEVER the installed system -- the metal hosts stay fully
 # independent. The module is shared by every host, but each VM is isolated: the
-# disk image and SSH forward port are derived from the hostname, so building and
-# running the orion and lyra VMs never collide.
+# disk image and SSH forward port are per-host, so building and running each
+# host's VM never collides.
 {
   lib,
   hostname,
   username,
+  hostSettings ? { },
   ...
 }:
 
@@ -37,16 +38,17 @@
       qemu.options = [ "-display gtk,zoom-to-fit=on" ];
 
       # Per-host isolated disk image (relative to the cwd you run the VM from).
-      # Distinct filename per host so orion/lyra VMs never share state. These
-      # qcow2 files are throwaway (gitignored).
+      # Distinct filename per host so VMs never share state. These qcow2 files
+      # are throwaway (gitignored).
       diskImage = "./${hostname}.qcow2";
 
-      # Distinct host-side SSH port per host so both VMs can be prepared without
-      # port clashes (orion 2221, lyra 2222).
+      # Distinct host-side SSH port per host so multiple VMs can be prepared
+      # without port clashes. Set `hostSettings.vmSshPort` per host in the
+      # consumer; defaults to 2222.
       forwardPorts = [
         {
           from = "host";
-          host.port = if hostname == "orion" then 2221 else 2222;
+          host.port = hostSettings.vmSshPort or 2222;
           guest.port = 22;
         }
       ];
@@ -69,8 +71,8 @@
     # present ONLY inside the throwaway VM; starship's [env_var.IN_VM] module
     # renders it (and shows nothing on metal, where the var is unset). Written
     # to /etc/set-environment (sourced by /etc/profile), so it reaches the
-    # interactive SSH login shell -- where the VM hostname alone (also "orion")
-    # can't disambiguate the VM from metal.
+    # interactive SSH login shell -- where the VM hostname alone (identical to
+    # the metal hostname) can't disambiguate the VM from metal.
     environment.variables.IN_VM = "${hostname}-vm";
 
     # SSH into the guest on the forwarded port for the edit-on-host/test-in-VM
