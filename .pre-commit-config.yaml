@@ -19,12 +19,6 @@
 default_install_hook_types: [pre-commit, pre-push]
 default_stages: [pre-commit]
 
-exclude: |
-  (?x)^(
-    result|
-    result-.*
-  )$
-
 repos:
   # --- meta: validate this config itself ---
   - repo: meta
@@ -49,6 +43,9 @@ repos:
         args: ["--maxkb=2048"]
       - id: check-yaml
       - id: check-json
+        # devcontainer.json is JSONC (allows // comments) per the Dev Container
+        # spec; strict check-json can't parse it. Skip those, check the rest.
+        exclude: (?:^|/)devcontainer\.json$
       - id: check-vcs-permalinks
 
   # --- security: secret / private-key detection (generic; no denylist) ---
