@@ -1,7 +1,7 @@
 { pkgs }:
 
 let
-  lib = pkgs.lib;
+  inherit (pkgs) lib;
   kwalletPam = lib.attrByPath [ "kdePackages" "kwallet-pam" ] (lib.attrByPath [
     "libsForQt5"
     "kwallet-pam"

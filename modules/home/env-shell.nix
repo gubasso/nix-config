@@ -23,24 +23,23 @@
     "$HOME/.cargo/bin"
   ];
 
-  xdg.configFile."environment.d/50-dotfiles.conf".source =
-    publicAssetsDir + "/environment.d/50-dotfiles.conf";
-  xdg.configFile."environment.d/50-docs-n-notes.conf".source =
-    publicAssetsDir + "/environment.d/50-docs-n-notes.conf";
-  xdg.configFile."environment.d/50-editor.conf".source = publicAssetsDir + "/environment.d/50-editor.conf";
-  xdg.configFile."environment.d/50-paths.conf".source = publicAssetsDir + "/environment.d/50-paths.conf";
-  xdg.configFile."environment.d/60-kwallet-ssh.conf".source =
-    publicAssetsDir + "/environment.d/60-kwallet-ssh.conf";
-  xdg.configFile."environment.d/60-gpg.conf".source = publicAssetsDir + "/environment.d/60-gpg.conf";
-  xdg.configFile."environment.d/50-xcursor.conf".source =
-    publicAssetsDir + "/environment.d/50-xcursor.conf";
+  xdg.configFile = {
+    "environment.d/50-dotfiles.conf".source = publicAssetsDir + "/environment.d/50-dotfiles.conf";
+    "environment.d/50-docs-n-notes.conf".source =
+      publicAssetsDir + "/environment.d/50-docs-n-notes.conf";
+    "environment.d/50-editor.conf".source = publicAssetsDir + "/environment.d/50-editor.conf";
+    "environment.d/50-paths.conf".source = publicAssetsDir + "/environment.d/50-paths.conf";
+    "environment.d/60-kwallet-ssh.conf".source = publicAssetsDir + "/environment.d/60-kwallet-ssh.conf";
+    "environment.d/60-gpg.conf".source = publicAssetsDir + "/environment.d/60-gpg.conf";
+    "environment.d/50-xcursor.conf".source = publicAssetsDir + "/environment.d/50-xcursor.conf";
 
-  # Portable TTY/SSH fallback body (sources environment.d, ruby gem-bin cache,
-  # SUDO/SYSTEMD editor exports). Home Manager's programs.bash module owns
-  # ~/.profile itself (to splice hm-session-vars.sh), so writing ~/.profile via
-  # home.file would collide. Install the body as a sourced fragment and pull it
-  # in from the login profile Home Manager generates.
-  xdg.configFile."dotfiles/profile.sh".source = publicAssetsDir + "/profile";
+    # Portable TTY/SSH fallback body (sources environment.d, ruby gem-bin cache,
+    # SUDO/SYSTEMD editor exports). Home Manager's programs.bash module owns
+    # ~/.profile itself (to splice hm-session-vars.sh), so writing ~/.profile via
+    # home.file would collide. Install the body as a sourced fragment and pull it
+    # in from the login profile Home Manager generates.
+    "dotfiles/profile.sh".source = publicAssetsDir + "/profile";
+  };
 
   programs.bash.profileExtra = ''
     if [ -r "$HOME/.config/dotfiles/profile.sh" ]; then

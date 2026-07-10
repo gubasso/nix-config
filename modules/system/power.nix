@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 {
   # TLP owns power management; disable the conflicting profile daemon.

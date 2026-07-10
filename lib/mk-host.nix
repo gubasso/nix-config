@@ -86,25 +86,27 @@ inputs.nixpkgs.lib.nixosSystem {
     {
       nixpkgs.overlays = [ (import ../overlays { inherit inputs; }) ];
 
-      home-manager.useGlobalPkgs = true;
-      home-manager.useUserPackages = true;
-      home-manager.extraSpecialArgs = {
-        inherit
-          inputs
-          hostname
-          username
-          hostSettings
-          publicAssetsDir
-          privateAssetsDir
-          assetsDir
-          ;
+      home-manager = {
+        useGlobalPkgs = true;
+        useUserPackages = true;
+        extraSpecialArgs = {
+          inherit
+            inputs
+            hostname
+            username
+            hostSettings
+            publicAssetsDir
+            privateAssetsDir
+            assetsDir
+            ;
+        };
+        # Shared Home Manager base + the host-only extras.
+        users.${username}.imports = [
+          ../modules/home/common.nix
+          homeModule
+        ]
+        ++ extraHomeModules;
       };
-      # Shared Home Manager base + the host-only extras.
-      home-manager.users.${username}.imports = [
-        ../modules/home/common.nix
-        homeModule
-      ]
-      ++ extraHomeModules;
     }
   ]
   ++ extraModules;

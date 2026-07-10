@@ -1,5 +1,5 @@
 #!/bin/bash
-# Restore the laptop HDA profile after the dock changes audio state.
+# Restore the laptop HAD profile after the dock changes audio state.
 
 set -euo pipefail
 

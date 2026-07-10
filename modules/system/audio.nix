@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 {
   # Disable the standalone PulseAudio service; PipeWire provides pulse compat.

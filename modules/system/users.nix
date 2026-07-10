@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 {
   # The primary user (home, groups, shell) is owned by the consumer's host

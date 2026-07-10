@@ -1,5 +1,5 @@
 { inputs }:
-final: prev: {
+_final: prev: {
   dwm = import ../pkgs/dwm {
     pkgs = prev;
     inherit inputs;

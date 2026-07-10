@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 {
   # Let NetworkManager own DNS (VPN split-DNS, captive portals). Do NOT use

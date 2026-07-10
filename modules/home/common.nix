@@ -12,8 +12,10 @@
     ./keyring.nix
   ];
 
-  home.username = username;
-  home.homeDirectory = "/home/${username}";
-  home.stateVersion = "25.11"; # pinned, never auto-bumped; matches system.stateVersion
+  home = {
+    inherit username;
+    homeDirectory = "/home/${username}";
+    stateVersion = "25.11"; # pinned, never auto-bumped; matches system.stateVersion
+  };
   programs.home-manager.enable = true;
 }

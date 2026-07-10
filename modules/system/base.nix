@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 {
   # Allow unfree packages. Required by the nvidia driver (hardware profiles) and

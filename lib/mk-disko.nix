@@ -27,7 +27,7 @@
   disko.devices = {
     disk.${diskName} = {
       type = "disk";
-      device = device;
+      inherit device;
 
       content = {
         type = "gpt";

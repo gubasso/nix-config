@@ -71,8 +71,7 @@
       overlays.default = import ./overlays { inherit inputs; };
 
       packages.${system} = {
-        dwm = pkgs.dwm;
-        dwm-session = pkgs.dwm-session;
+        inherit (pkgs) dwm dwm-session;
       };
 
       formatter.${system} = pkgs.nixfmt-rfc-style;
@@ -98,16 +97,12 @@
       # Test tier: `nix flake check` builds these. The framework's "unit tests"
       # are its package builds plus a repo-wide formatting gate.
       checks.${system} = {
-        dwm = pkgs.dwm;
-        dwm-session = pkgs.dwm-session;
-        formatting =
-          pkgs.runCommand "nixfmt-check"
-            { nativeBuildInputs = [ pkgs.nixfmt-rfc-style ]; }
-            ''
-              find ${./flake.nix} ${./lib} ${./modules} ${./overlays} ${./pkgs} \
-                -name '*.nix' -print0 | xargs -0 nixfmt --check
-              touch "$out"
-            '';
+        inherit (pkgs) dwm dwm-session;
+        formatting = pkgs.runCommand "nixfmt-check" { nativeBuildInputs = [ pkgs.nixfmt-rfc-style ]; } ''
+          find ${./flake.nix} ${./lib} ${./modules} ${./overlays} ${./pkgs} \
+            -name '*.nix' -print0 | xargs -0 nixfmt --check
+          touch "$out"
+        '';
       };
     };
 }
