@@ -5,6 +5,9 @@
 result
 result-*
 
+# direnv-generated devShell cache (.envrc: use flake)
+.direnv/
+
 # docs-design: drafts live outside shipped docs — never shipped, either spelling
 /.draft/
 /.drafts/

@@ -58,13 +58,20 @@ See [ADR-0010](docs/decisions/ADR-0010-enforce-public-hygiene-with-hooks.md).
 
 ## Validation
 
-Human-only validation after edits (pre-commit deliberately never runs Nix
-evaluation):
+This repo uses the standard fmt/lint/check/test tiers, driven by `just` and
+enforced by hooks (see
+[ADR-0011](docs/decisions/ADR-0011-adopt-standard-dev-tooling.md) and
+[docs/guides/development.md](docs/guides/development.md)). Enter the toolchain
+with `nix develop` (or direnv), then:
 
 ```bash
-nix fmt
-nix flake check
-nix build .#packages.x86_64-linux.dwm-session
+just fmt     # nixfmt (format)
+just lint    # statix + deadnix
+just check   # nix flake check — the required test tier (alias: just test)
 ```
+
+`nix flake check` is the required gate before merging: pre-commit runs
+nixfmt/statix/deadnix, pre-push runs `nix flake check`. Full builds
+(`nix build` / `just build-dwm`) are a human step, never a hook.
 
 Agents in this workspace must not run git unless the user explicitly permits it.

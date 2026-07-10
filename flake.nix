@@ -76,5 +76,38 @@
       };
 
       formatter.${system} = pkgs.nixfmt-rfc-style;
+
+      # Development toolchain (see docs/guides/development.md). `nix develop`,
+      # or direnv via .envrc, puts these on PATH so the pre-commit hooks and the
+      # justfile recipes resolve their tools.
+      devShells.${system}.default = pkgs.mkShell {
+        packages = with pkgs; [
+          nixfmt-rfc-style
+          statix
+          deadnix
+          typos
+          just
+          pre-commit
+          jq
+          ripgrep
+          gitleaks
+          lychee
+        ];
+      };
+
+      # Test tier: `nix flake check` builds these. The framework's "unit tests"
+      # are its package builds plus a repo-wide formatting gate.
+      checks.${system} = {
+        dwm = pkgs.dwm;
+        dwm-session = pkgs.dwm-session;
+        formatting =
+          pkgs.runCommand "nixfmt-check"
+            { nativeBuildInputs = [ pkgs.nixfmt-rfc-style ]; }
+            ''
+              find ${./flake.nix} ${./lib} ${./modules} ${./overlays} ${./pkgs} \
+                -name '*.nix' -print0 | xargs -0 nixfmt --check
+              touch "$out"
+            '';
+      };
     };
 }

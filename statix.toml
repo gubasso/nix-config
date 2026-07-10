@@ -1,0 +1,6 @@
+# statix lint configuration — see docs/guides/development.md and ADR-0011.
+# statix walks the tree itself (the pre-commit hook passes no filenames), so
+# scope it here. Vendored/generated asset trees are not our source; skip them.
+ignore = [
+  "home/assets",
+]

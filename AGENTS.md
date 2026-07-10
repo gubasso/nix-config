@@ -19,3 +19,8 @@ These rules are backed by pre-commit hooks (fast hygiene + secret scanning) and
 pre-push hooks (thorough secret-history and link checks), not by any committed
 denylist of private strings. See [CLAUDE.md](CLAUDE.md) and
 [ADR-0010](docs/decisions/ADR-0010-enforce-public-hygiene-with-hooks.md).
+
+Development follows the standard fmt/lint/check/test tiers via a `just` runner
+and a flake devShell; the required test tier is `nix flake check` (`just test`).
+See [ADR-0011](docs/decisions/ADR-0011-adopt-standard-dev-tooling.md) and
+[docs/guides/development.md](docs/guides/development.md).

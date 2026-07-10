@@ -12,9 +12,12 @@
 #     the sops-managed-secrets guard and the public flake.lock host allowlist.
 #     Both encode allow-rules, not private data.
 #   - Fast, auto-fixing checks run at pre-commit; slow or networked checks (deep
-#     secret-history scan, documentation link check) run at pre-push.
-#   - Nix evaluation/formatting stays human-only (see CLAUDE.md); this config
-#     never runs `nix build`/`flake check`/`fmt`.
+#     secret-history scan, documentation link check, `nix flake check`) run at
+#     pre-push.
+#   - Nix tooling (see ADR-0011): nixfmt/statix/deadnix are parse-only and run at
+#     pre-commit; `nix flake check` (evaluation + package/format checks) is the
+#     test tier and runs at pre-push. Full builds stay a human `just` step.
+#     The nix hooks need the flake devShell on PATH (`nix develop` / direnv).
 
 default_install_hook_types: [pre-commit, pre-push]
 default_stages: [pre-commit]
@@ -47,6 +50,40 @@ repos:
         # spec; strict check-json can't parse it. Skip those, check the rest.
         exclude: (?:^|/)devcontainer\.json$
       - id: check-vcs-permalinks
+      - id: check-toml
+      - id: check-xml
+      - id: destroyed-symlinks
+
+  # --- nix: format + lint (parse-only; no flake evaluation) ---
+  # Tools come from the flake devShell (`nix develop` / direnv). Scoped to real
+  # source; vendored/generated trees under home/assets/** are excluded.
+  - repo: local
+    hooks:
+      - id: nixfmt
+        name: nixfmt (format)
+        entry: nixfmt
+        language: system
+        types: [nix]
+        exclude: ^home/assets/
+      - id: statix
+        name: statix (nix anti-patterns)
+        entry: statix check
+        language: system
+        types: [nix]
+        pass_filenames: false
+      - id: deadnix
+        name: deadnix (dead code)
+        entry: deadnix --fail
+        language: system
+        types: [nix]
+        exclude: ^home/assets/
+
+  # --- spelling: typo detection across text/docs ---
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.39.2
+    hooks:
+      - id: typos
+        exclude: ^(home/assets/|secrets/)
 
   # --- security: secret / private-key detection (generic; no denylist) ---
   # Lightweight private-key detection on every commit.
@@ -115,3 +152,12 @@ repos:
         pass_filenames: false
         files: ^flake\.lock$
         stages: [pre-commit]
+
+      # Test tier: evaluate the flake and build its checks (packages + format
+      # gate). Runs at pre-push; needs nix on PATH. See ADR-0011.
+      - id: nix-flake-check
+        name: nix flake check (eval / test tier)
+        entry: nix flake check
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
