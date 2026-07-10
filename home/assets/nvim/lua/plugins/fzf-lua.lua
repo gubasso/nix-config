@@ -213,6 +213,13 @@ return {
         -- match any depth. Per-project extras live in a root `.ignore` (or
         -- `.rgignore`) read by ripgrep automatically — same `.ignore` fd reads.
         rg_opts = with(rg_base, { [[--glob "!/tests/**"]] }),
+        -- Abbreviate each parent-path component to 1 char (/h/u/p/s/file.lua)
+        -- so the path occupies a small, fixed chunk of the width. fzf always
+        -- truncates the RIGHT of a line; capping the (left) path here keeps the
+        -- matched text — the important part — visible instead of cut off. Bump
+        -- to 2+ for more path context, or swap for `formatter =
+        -- "path.filename_first"` to move the filename ahead of the path.
+        path_shorten = 1,
         fzf_opts = {
           ["--delimiter"] = ":",
           ["--nth"] = "4..", -- match only line text
@@ -259,7 +266,15 @@ return {
     require("which-key").add({
       -- Direct shortcuts (muscle memory / conventions)
       { "<C-p>", fzf.files, desc = "Find Files" },
-      { "<leader>/", fzf.grep_project, desc = "Grep (fuzzy lines)" },
+      {
+        "<leader>/",
+        function()
+          -- Shrink the preview to 35% (vs the global right:60%) so the result
+          -- list — the point of a fuzzy line grep — gets the remaining 65%.
+          fzf.grep_project({ winopts = { preview = { horizontal = "right:35%" } } })
+        end,
+        desc = "Grep (fuzzy lines)",
+      },
       { "<leader>:", fzf.command_history, desc = "Command History" },
       { "<leader>r", fzf.resume, desc = "Resume last picker" },
 
