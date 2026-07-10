@@ -1,0 +1,4 @@
+# Ignore built-in touchscreen for libinput (X11 + Wayland)
+ACTION=="add|change", SUBSYSTEM=="input", KERNEL=="event*", \
+  ENV{ID_INPUT_TOUCHSCREEN}=="1", ATTRS{id/vendor}=="04f3", ATTRS{id/product}=="413b", \
+  ENV{LIBINPUT_IGNORE_DEVICE}="1"

@@ -4,58 +4,67 @@ Guidance for Claude Code and other coding agents working in this repo.
 
 ## What this repo is
 
-This is the consolidated NixOS + Home Manager source of truth for the `onyx`
-and `quartz` gear. It carries concrete hosts, usernames, hardware profiles,
-Home Manager assets, overlays, packages, and the sops-encrypted secret
-structure.
+This is the public NixOS + Home Manager framework. It carries reusable host
+factories, shared modules, overlays, packages, and public-safe assets.
 
-Plaintext hostnames, usernames, gear names, and hardware identity are accepted
-in this repo. Secret values are not.
+Concrete hostnames, usernames, private hardware facts, work assets, real age
+recipients, encrypted secret payloads, and plaintext credentials do not belong
+here. Private consumers own that data and import this framework.
 
 ## Hard rules
 
-- Only sops-encrypted secret material may be committed under `secrets/`.
-- Never commit an age private key, plaintext credential, token, private SSH key,
-  exported private GPG key, or decrypted secret.
-- Flakes only see git-tracked files. New files must be added by a human before
-  `nix flake check` can validate them fully.
-- Preserve the gear identity mapping: `onyx -> gubasso`, `quartz -> gbasso`.
-  Do not cross usernames between gear.
-- Keep shared modules reusable through explicit arguments such as `assetsDir`,
-  `hostname`, `username`, and `hostSettings`; put host-only behavior in
-  `hosts/<host>/`.
+- This repository is public. It must never contain personal-identifying
+  strings — concrete hostnames, usernames, hardware identifiers, physical
+  location, or private repository URLs/revisions. Such data belongs only in the
+  private consumer.
+- Never commit plaintext secrets, age private keys, private SSH keys, exported
+  private GPG keys, tokens, or decrypted secret files.
+- Do not add private repositories as flake inputs. Public `flake.lock` must stay
+  free of private URLs, branches, and revisions.
+- Keep shared modules reusable through explicit arguments such as
+  `publicAssetsDir`, `privateAssetsDir`, `hostname`, `username`, and
+  `hostSettings`.
+- Flakes only see git-tracked files. Humans must track new files before Nix
+  validation can fully see them.
 
 ## Layout
 
-- `flake.nix` emits NixOS configs for `orion`, `lyra`, `orion-vmtest`,
-  `lyra-vmtest`, and standalone Home Manager configs for `gubasso@nova` and
-  `gbasso@tumblesuse`.
+- `flake.nix` exports factories, modules, overlays, packages, and a formatter.
 - `lib/` contains `mk-host.nix`, `mk-home-host.nix`, and `mk-disko.nix`.
-- `hosts/` contains concrete hosts and `gear.nix`.
-- `home/assets/` contains verbatim Home Manager asset files.
+- `home/assets/` contains only public-safe generic assets.
 - `modules/system/` and `modules/home/` contain shared modules.
-- `secrets/` contains only encrypted sops material and placeholder directories.
-- `docs/` contains Diátaxis documentation and ADRs.
+- `docs/` contains Diataxis documentation and ADRs.
+
+## Enforcement
+
+Repository hygiene is enforced by pre-commit, not by prose alone. Consolidated
+community hooks do the generic work — secret and private-key detection, baseline
+hygiene, shell linting — without ever naming a private string. `repo: local`
+scripts cover only the cases with no consolidated equivalent: the `secrets/**`
+sops-managed guard and the public `flake.lock` host allowlist. No committed hook
+encodes a denylist of private strings — that would leak the very identifiers it
+guards; keeping the public tree free of personal data stays a rule authors and
+agents uphold, backed by the generic secret scanners and review.
+
+Fast, auto-fixing checks run at pre-commit; slow or networked checks (deep
+secret-history scan, documentation link check) run at pre-push:
+
+```bash
+pre-commit install --hook-type pre-commit --hook-type pre-push
+pre-commit run --all-files
+```
+
+See [ADR-0010](docs/decisions/ADR-0010-enforce-public-hygiene-with-hooks.md).
 
 ## Validation
 
-Use Nix directly:
+Human-only validation after edits (pre-commit deliberately never runs Nix
+evaluation):
 
 ```bash
+nix fmt
 nix flake check
 nix build .#packages.x86_64-linux.dwm-session
-home-manager build --flake .#gubasso@nova
-home-manager build --flake .#gbasso@tumblesuse
-nix fmt
 ```
 
-New files must be git-tracked before flakes can see them. Agents in this
-workspace must not run git unless the user explicitly permits it.
-
-## Documentation
-
-Docs follow the docs-design canon: Diátaxis zones, lean ADRs at or below 350
-words, accepted decisions are never deleted, and drafts stay under `.draft/`.
-Start at `docs/README.md`; load `docs/AGENTS.md` for the digest. ADRs live in
-`docs/decisions/`, use `ADR-<NNNN>-<slug>.md`, and follow
-`docs/decisions/template.md`.
+Agents in this workspace must not run git unless the user explicitly permits it.

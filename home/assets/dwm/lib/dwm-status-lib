@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Shared runtime helpers for dwm-status-* scripts.
+# Source this file; do not execute it.
+
+DWM_STATUS_DIR="${DWM_STATUS_DIR:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/dwm-status}"
+
+dwm_status_init_dir() {
+  mkdir -p "$DWM_STATUS_DIR"
+  chmod 700 "$DWM_STATUS_DIR" 2>/dev/null || true
+}
+
+# Atomic write: temp file + rename prevents partial reads by the aggregator.
+dwm_status_write() {
+  local file=$1
+  local value=$2
+  local tmp="${file}.tmp.$$"
+  printf '%s\n' "$value" >"$tmp"
+  mv -f "$tmp" "$file"
+}

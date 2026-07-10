@@ -1,0 +1,11 @@
+{
+  "name": "${localWorkspaceFolderBasename}-sandbox",
+  "forwardPorts": [5173, 4173],
+  "portsAttributes": {
+    "5173": { "label": "Vite/SvelteKit dev", "onAutoForward": "notify" },
+    "4173": { "label": "Vite preview", "onAutoForward": "silent" }
+  },
+  "postStartCommand": {
+    "node": "bash -lc 'if [ -e .envrc ]; then direnv exec . sh -c \"pnpm install && pre-commit install\"; fi'"
+  }
+}

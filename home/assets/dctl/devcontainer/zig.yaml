@@ -1,0 +1,12 @@
+layers:
+  - base
+  - nix
+  - shell
+  - dotfiles
+  - agents
+  - claude
+  - codex
+  - cog
+  - projects
+  - pre-commit
+  - zig

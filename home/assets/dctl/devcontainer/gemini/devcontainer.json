@@ -1,0 +1,17 @@
+// =============================================================================
+// GEMINI LAYER — Google Gemini CLI host state
+// =============================================================================
+//
+// 1:1 host bind for `~/.gemini`. The host is assumed set up
+// (`dots gemini` or equivalent has already materialized this path), so
+// host and container see the same files without `dots` running inside.
+// =============================================================================
+{
+  "mounts": [
+    {
+      "source": "${localEnv:HOME}/.gemini",
+      "target": "${localEnv:HOME}/.gemini",
+      "type": "bind"
+    }
+  ]
+}

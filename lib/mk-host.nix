@@ -13,8 +13,10 @@
 #   homeModule   - path/module for this host's Home Manager extras
 #                  (hosts/<name>/home.nix). The shared home base is injected, so
 #                  this only carries host-only home config.
-#   assetsDir    - path to the consolidated Home Manager asset tree (dotfiles).
-#                  Threaded to home modules, which read files as `assetsDir + "/…"`.
+#   publicAssetsDir  - path to public-safe Home Manager assets.
+#   privateAssetsDir - optional path to private per-host/private assets.
+#   assetsDir        - compatibility asset root; defaults to privateAssetsDir
+#                      when present, otherwise publicAssetsDir.
 #   hostSettings - per-host data attrset (e.g. { dpi = 192; scale = 2; }) consumed
 #                  by modules/home/graphics.nix.
 #   system       - platform double (default x86_64-linux).
@@ -31,12 +33,15 @@
   username,
   hostModule,
   homeModule,
-  assetsDir,
+  publicAssetsDir ? ../home/assets,
+  privateAssetsDir ? null,
+  assetsDir ? if privateAssetsDir != null then privateAssetsDir else publicAssetsDir,
   hostSettings ? { },
   system ? "x86_64-linux",
   diskDevice ? "/dev/nvme0n1",
   luksPasswordFile ? null,
   extraModules ? [ ],
+  extraHomeModules ? [ ],
 }:
 
 inputs.nixpkgs.lib.nixosSystem {
@@ -50,6 +55,9 @@ inputs.nixpkgs.lib.nixosSystem {
       diskDevice
       luksPasswordFile
       hostSettings
+      publicAssetsDir
+      privateAssetsDir
+      assetsDir
       ;
     # Shared disko template exposed as a function so a host's
     # hosts/<name>/disko.nix stays a thin call with no cross-flake import.
@@ -86,6 +94,8 @@ inputs.nixpkgs.lib.nixosSystem {
           hostname
           username
           hostSettings
+          publicAssetsDir
+          privateAssetsDir
           assetsDir
           ;
       };
@@ -93,7 +103,8 @@ inputs.nixpkgs.lib.nixosSystem {
       home-manager.users.${username}.imports = [
         ../modules/home/common.nix
         homeModule
-      ];
+      ]
+      ++ extraHomeModules;
     }
   ]
   ++ extraModules;

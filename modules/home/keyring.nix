@@ -1,6 +1,6 @@
 # SSH agent (fixed socket) + GPG agent + KWallet wiring. Asset files come from
-# the consumer's tree via `assetsDir` (threaded by lib/mk-host.nix).
-{ pkgs, assetsDir, ... }:
+# the consumer's tree via `publicAssetsDir` (threaded by lib/mk-host.nix).
+{ pkgs, publicAssetsDir, ... }:
 
 {
   programs.ssh = {
@@ -42,10 +42,10 @@
   };
 
   # dock-audio ships inside pkgs.dwm-session; no HM user unit is needed.
-  xdg.configFile."kwalletrc".source = assetsDir + "/kwallet/kwalletrc";
+  xdg.configFile."kwalletrc".source = publicAssetsDir + "/kwallet/kwalletrc";
 
   home.file.".local/bin/ssh-askpass-rofi" = {
-    source = assetsDir + "/bin/ssh-askpass-rofi";
+    source = publicAssetsDir + "/bin/ssh-askpass-rofi";
     executable = true;
   };
 }

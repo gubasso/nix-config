@@ -1,32 +1,19 @@
-# ADR-0006: Standalone Home Manager hosts
+# ADR-0006: Standalone Home Manager Hosts
 
-## Context and Problem Statement
+Status: Superseded by ADR-0009
 
-`nova` and `tumblesuse` remain Arch/openSUSE hosts, but their user configuration
-should come from the same source of truth as the future NixOS hosts. The NixOS
-factory returns `nixosSystem`, which is not the standalone Home Manager contract.
+## Context
 
-## Considered Options
+This ADR previously recorded concrete standalone Home Manager host identities in
+the public repo.
 
-- Add a `kind` switch to `mkHost`.
-- Create a sibling `mkHomeHost` factory.
-- Keep non-NixOS hosts on Stow only.
+## Decision
 
-## Decision Outcome
-
-Chosen option: **create `mkHomeHost`**. It returns
-`home-manager.lib.homeManagerConfiguration`, injects shared home modules, uses
-the same `assetsDir` and gear metadata, and includes the Home Manager sops
-module with a user age key.
+Standalone Home Manager support remains part of the public framework through
+`lib.mkHomeHost`, but concrete standalone host outputs and identifying values
+belong in the private consumer.
 
 ## Consequences
 
-- Good: NixOS and standalone Home Manager contracts stay clear.
-- Good: `gubasso@nova` and `gbasso@tumblesuse` can build before NixOS cutover.
-- Bad: drivers, kernels, display managers, and distro services remain native
-  until a full NixOS migration.
-
-## Status
-
-Accepted. Extends
-[ADR-0002](ADR-0002-mkhost-parameterization.md).
+Public docs use placeholders such as `<user>@<host>`. Private docs carry the
+actual host inventory and activation procedures.

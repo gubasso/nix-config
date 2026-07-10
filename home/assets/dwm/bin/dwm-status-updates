@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# Arch package update severity module for dwm right bar.
+# Writes a single-line status to $DWM_STATUS_DIR/updates.
+#
+# Shows nothing when up-to-date. When pending updates exist, shows a
+# severity icon based on days since the last pacman transaction:
+#   󰏗 stale (7-13 days), 󰏔 overdue (14-20), 󱧔 urgent (21+).
+
+set -euo pipefail
+
+# Resolve own directory so shared library is found relative to this script.
+SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/../lib/dwm-status-lib"
+
+DWM_STATUS_UPDATES_INTERVAL="${DWM_STATUS_UPDATES_INTERVAL:-86400}"
+DWM_STATUS_UPDATES_WARN_DAYS="${DWM_STATUS_UPDATES_WARN_DAYS:-7}"
+DWM_STATUS_UPDATES_NEEDS_DAYS="${DWM_STATUS_UPDATES_NEEDS_DAYS:-14}"
+DWM_STATUS_UPDATES_URGENT_DAYS="${DWM_STATUS_UPDATES_URGENT_DAYS:-21}"
+
+OUT_FILE="$DWM_STATUS_DIR/updates"
+
+# Count available Arch package updates.
+# Prefers checkupdates (from pacman-contrib) which creates a temporary
+# fakeroot and syncs databases internally — no root required.
+# Falls back to pacman -Qu (uses cached local database).
+pending_count() {
+  local output
+
+  if command -v checkupdates >/dev/null 2>&1; then
+    output=$(checkupdates 2>/dev/null) || true
+  elif command -v pacman >/dev/null 2>&1; then
+    output=$(pacman -Qu 2>/dev/null) || true
+  else
+    printf '0'
+    return
+  fi
+
+  if [[ -z "$output" ]]; then
+    printf '0'
+  else
+    printf '%s\n' "$output" | grep -c .
+  fi
+}
+
+# Parse the timestamp of the last package upgrade/install from pacman.log.
+# Matches [ALPM] upgraded|installed|reinstalled lines and extracts the
+# ISO 8601 timestamp from the last match.
+last_update_epoch() {
+  local last_ts
+
+  last_ts=$(
+    awk '/\[ALPM\] (upgraded|installed|reinstalled)/{line=$0}
+      END{if(line){match(line,/\[([^]]+)\]/,a); print a[1]}}' \
+      /var/log/pacman.log 2>/dev/null || true
+  )
+
+  [[ -n "$last_ts" ]] || return 1
+  date -d "$last_ts" +%s 2>/dev/null
+}
+
+# Check pending count + staleness, write severity icon to output file.
+update_once() {
+  local count now_epoch last_epoch days_since text
+
+  count=$(pending_count)
+  if ((count == 0)); then
+    dwm_status_write "$OUT_FILE" ""
+    return
+  fi
+
+  # Calculate days since last pacman transaction.
+  # If log is unparseable, assume maximum staleness (shows urgent icon).
+  now_epoch=$(date +%s)
+  if last_epoch=$(last_update_epoch); then
+    days_since=$(((now_epoch - last_epoch) / 86400))
+  else
+    days_since=9999
+  fi
+
+  text=""
+  if ((days_since >= DWM_STATUS_UPDATES_URGENT_DAYS)); then
+    text="󱧔"
+  elif ((days_since >= DWM_STATUS_UPDATES_NEEDS_DAYS)); then
+    text="󰏔"
+  elif ((days_since >= DWM_STATUS_UPDATES_WARN_DAYS)); then
+    text="󰏗"
+  fi
+
+  dwm_status_write "$OUT_FILE" "$text"
+}
+
+trap 'exit 0' INT TERM
+
+dwm_status_init_dir
+
+# Immediate check on startup, then once daily.
+while true; do
+  update_once
+  sleep "$DWM_STATUS_UPDATES_INTERVAL"
+done

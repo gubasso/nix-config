@@ -1,0 +1,25 @@
+{
+  "name": "${localWorkspaceFolderBasename}-sandbox",
+  "mounts": [
+    {
+      "source": "${localEnv:HOME}/.config/riptask",
+      "target": "${localEnv:HOME}/.config/riptask",
+      "type": "bind"
+    },
+    {
+      "source": "${localEnv:HOME}/.local/share/riptask",
+      "target": "${localEnv:HOME}/.local/share/riptask",
+      "type": "bind"
+    },
+    {
+      "source": "${localEnv:HOME}/.cache/riptask",
+      "target": "${localEnv:HOME}/.cache/riptask",
+      "type": "bind"
+    },
+    {
+      "source": "${localEnv:HOME}/.local/state/riptask",
+      "target": "${localEnv:HOME}/.local/state/riptask",
+      "type": "bind"
+    }
+  ]
+}

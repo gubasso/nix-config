@@ -1,0 +1,14 @@
+{
+  "mounts": [
+    {
+      "source": "${localEnv:HOME}/Projects/",
+      "target": "${localEnv:HOME}/Projects/",
+      "type": "bind"
+    },
+    {
+      "source": "${localEnv:HOME}/DocsNNotes",
+      "target": "${localEnv:HOME}/DocsNNotes",
+      "type": "bind"
+    }
+  ]
+}

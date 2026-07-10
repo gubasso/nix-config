@@ -1,0 +1,62 @@
+// =============================================================================
+// COG LAYER — cog CLI shared reference payload (skill-refs + data)
+// =============================================================================
+//
+// cog installs a split payload on the host (see cog's install.sh):
+//
+//   ~/.local/lib/cog     — bin/, lib/, VERSION (the executable payload)
+//   ~/.local/bin/cog     — symlink -> ~/.local/lib/cog/bin/cog
+//   ~/.local/share/cog   — skill-refs/ (templates + read-only references)
+//                          and data/ (CLI reference tables, research-shelf)
+//   ~/.local/state/cog   — runtime state: cog.log, runs/, preflight-cache,
+//                          plan state (written at runtime)
+//
+// The `base` layer already binds ~/.local/bin and ~/.local/lib (readonly),
+// so the cog binary and its lib/ resolve inside every container. What base
+// does NOT cover is ~/.local/share, so without this layer the container
+// falls back to the STALE ~/.local/share/cog baked into the image at build
+// time — skill-refs/templates and data drift from the host, and
+// cog subcommands that resolve their template/reference root through
+// $XDG_DATA_HOME/cog (e.g. `cog nix-devshell-detect`, `cog skill-refs`)
+// see an out-of-date tree or missing templates.
+//
+// FIX: bind ~/.local/share/cog 1:1 so the container reads the host's
+// freshly-installed reference payload. The host is the source of truth —
+// keep it synced with `just install` / `just install-sync` in the cog repo.
+//
+// -----------------------------------------------------------------------------
+// Why writable (not readonly like base's lib/bin binds)
+// -----------------------------------------------------------------------------
+//
+// ~/.local/share/cog is not pure read-only payload. cog writes back into it
+// at runtime: it appends to data/research-shelf/index.jsonl and writes
+// telemetry/ and plans/ under the same root (see cog's fn_match_telemetry.sh,
+// fn_plan_store.sh, and the research-shelf stream). A readonly bind would
+// make those writes fail. A 1:1 writable bind matches the sibling
+// ~/.local/share/<tool> layers (opencode, riptask) and lets the container
+// share cog's live reference data with the host.
+//
+// -----------------------------------------------------------------------------
+// Why ~/.local/state/cog is intentionally NOT mounted
+// -----------------------------------------------------------------------------
+//
+// State under ~/.local/state/cog is environment-specific: the codex/sandbox
+// preflight cache and run dirs describe the machine cog runs on. The host and
+// a container detect sandbox mode differently, so sharing that cache would
+// feed host-derived assumptions into the container (and vice versa). Leaving
+// state container-local keeps each environment's runtime state correct and
+// isolated; the image layer is writable, so cog creates its own state dir.
+//
+// The cog skills themselves (~/.claude/skills, ~/.agents/skills) are already
+// exposed by the `claude` and `codex` layers via the ~/.claude and ~/.agents
+// binds, so they are not repeated here.
+// =============================================================================
+{
+  "mounts": [
+    {
+      "source": "${localEnv:HOME}/.local/share/cog",
+      "target": "${localEnv:HOME}/.local/share/cog",
+      "type": "bind"
+    }
+  ]
+}

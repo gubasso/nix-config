@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# Wi-Fi alarm module for dwm right bar.
+# Writes a single-line status to $DWM_STATUS_DIR/wifi.
+#
+# Alarm-only design: shows nothing when connected with good signal.
+# Shows 󰤮 when disconnected, 󰤟 when signal quality is below threshold.
+
+set -euo pipefail
+
+# Resolve own directory so shared library is found relative to this script.
+SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/../lib/dwm-status-lib"
+
+DWM_STATUS_WIFI_INTERVAL="${DWM_STATUS_WIFI_INTERVAL:-5}"
+DWM_STATUS_WIFI_WEAK_PCT="${DWM_STATUS_WIFI_WEAK_PCT:-30}"
+
+OUT_FILE="$DWM_STATUS_DIR/wifi"
+
+# Auto-discover the first wireless interface via sysfs.
+find_wifi_iface() {
+  local iface_path iface
+  for iface_path in /sys/class/net/*/wireless; do
+    [[ -d "$iface_path" ]] || continue
+    iface=${iface_path%/wireless}
+    iface=${iface##*/}
+    printf '%s' "$iface"
+    return 0
+  done
+  return 1
+}
+
+# Convert dBm signal strength to approximate quality percentage.
+# Linear mapping: -110 dBm → 0%, -40 dBm → 100%.
+# Formula: pct = (dBm + 110) * 100 / 70, clamped to [0, 100].
+dbm_to_pct() {
+  local dbm=$1
+  local pct
+  pct=$(((dbm + 110) * 100 / 70))
+  ((pct < 0)) && pct=0
+  ((pct > 100)) && pct=100
+  printf '%d' "$pct"
+}
+
+# Check wifi state via iw and write alarm icon if needed.
+update_once() {
+  local iface=$1
+  local link_line signal_dbm signal_pct text
+
+  link_line=$(iw dev "$iface" link 2>/dev/null || true)
+  if [[ -z "$link_line" || "$link_line" == *"Not connected."* ]]; then
+    dwm_status_write "$OUT_FILE" "󰤮"
+    return
+  fi
+
+  # Parse "signal: -XX dBm" from iw output.
+  signal_dbm=""
+  if [[ "$link_line" =~ signal:[[:space:]]*(-?[0-9]+)[[:space:]]*dBm ]]; then
+    signal_dbm="${BASH_REMATCH[1]}"
+  fi
+
+  # If connected but signal data unavailable, assume weak (conservative).
+  if [[ -z "$signal_dbm" ]]; then
+    dwm_status_write "$OUT_FILE" "󰤟"
+    return
+  fi
+
+  signal_pct=$(dbm_to_pct "$signal_dbm")
+  text=""
+  if ((signal_pct < DWM_STATUS_WIFI_WEAK_PCT)); then
+    text="󰤟"
+  fi
+  dwm_status_write "$OUT_FILE" "$text"
+}
+
+trap 'exit 0' INT TERM
+
+dwm_status_init_dir
+
+if ! [[ "$DWM_STATUS_WIFI_WEAK_PCT" =~ ^[0-9]+$ ]]; then
+  DWM_STATUS_WIFI_WEAK_PCT=30
+fi
+
+# No wireless interface (desktop or no wifi hardware): write empty and exit.
+iface=$(find_wifi_iface || true)
+if [[ -z "$iface" ]]; then
+  dwm_status_write "$OUT_FILE" ""
+  exit 0
+fi
+
+while true; do
+  update_once "$iface"
+  sleep "$DWM_STATUS_WIFI_INTERVAL"
+done

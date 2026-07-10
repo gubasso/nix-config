@@ -29,4 +29,8 @@ truth for hosts, modules, assets, hardware profiles, and sops-encrypted secrets.
 
 Accepted. Supersedes
 [ADR-0001](ADR-0001-public-private-split.md) and the external `nix-secrets`
-decision `ADR-0001-consume-nix-config-as-flake-input.md`.
+decision `ADR-0001-consume-nix-config-as-flake-input.md`. Its private-data
+consolidation stance is partially superseded by
+[ADR-0009](ADR-0009-private-overlay-source-of-truth.md), which moves concrete
+hosts, identities, private assets, and secrets scaffolding back into private
+`nix-secrets`.

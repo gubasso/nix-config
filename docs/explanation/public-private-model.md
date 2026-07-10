@@ -34,21 +34,29 @@ See [ADR-0001](../decisions/ADR-0001-public-private-split.md).
 The naive split makes each consumer host re-import every shared module via
 `inputs.nix-config.nixosModules.*`. Instead, `mkHost` **injects** the shared set
 itself and threads everything a host needs (`inputs`, `mkDisko`, `hostSettings`,
-`assetsDir`) through `specialArgs`. A consumer host module ends up carrying only
-what is genuinely per-machine: its hardware profile, disk parameters, user, and
+`publicAssetsDir`, `privateAssetsDir`) through `specialArgs`. A consumer host
+module ends up carrying only what is genuinely per-machine: its hardware profile,
+disk parameters, user, and
 `stateVersion`. No consumer module ever writes `inputs.nix-config`.
 
 See [ADR-0002](../decisions/ADR-0002-mkhost-parameterization.md).
 
-## Why assets are a path, not files
+## Why assets are two paths, not files
 
-Home Manager modules wire personal dotfiles. Rather than ship those files (which
-include a physical location in `gammastep/config.ini`), the modules read from a
-consumer-supplied `assetsDir`. The public modules keep their full structure and
-ship zero personal files; the consumer's `home/assets/` tree is the only home for
-dotfiles.
+Home Manager modules wire dotfiles. Rather than ship those files, the modules
+read from `publicAssetsDir` — public-safe, generic assets that live in this
+framework and default to its own `home/assets/` — and, for anything
+host-specific or personal (a physical location in `gammastep/config.ini`, a
+per-host `bash/hosts/<hostname>.bash`, work overlays), from an optional
+`privateAssetsDir` supplied only by the private consumer. The compatibility
+`assetsDir` argument remains as a derived legacy value (it points at
+`privateAssetsDir` when set, otherwise `publicAssetsDir`) and no module consumes
+it directly. The public modules keep their full structure and ship zero personal
+files; the private consumer owns every host-specific overlay.
 
-See [ADR-0003](../decisions/ADR-0003-assets-live-in-consumer.md).
+See [ADR-0003](../decisions/ADR-0003-assets-live-in-consumer.md), superseded for
+the public/private asset split by
+[ADR-0009](../decisions/ADR-0009-private-overlay-source-of-truth.md).
 
 ## Consequences you will feel
 

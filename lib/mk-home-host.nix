@@ -3,10 +3,13 @@
   hostname,
   username,
   homeModule,
-  assetsDir,
+  publicAssetsDir ? ../home/assets,
+  privateAssetsDir ? null,
+  assetsDir ? if privateAssetsDir != null then privateAssetsDir else publicAssetsDir,
   hostSettings ? { },
   system ? "x86_64-linux",
   extraModules ? [ ],
+  extraHomeModules ? [ ],
 }:
 let
   pkgs = import inputs.nixpkgs {
@@ -24,6 +27,8 @@ inputs.home-manager.lib.homeManagerConfiguration {
       hostname
       username
       hostSettings
+      publicAssetsDir
+      privateAssetsDir
       assetsDir
       ;
   };
@@ -36,5 +41,6 @@ inputs.home-manager.lib.homeManagerConfiguration {
     }
     homeModule
   ]
+  ++ extraHomeModules
   ++ extraModules;
 }

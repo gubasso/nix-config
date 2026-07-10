@@ -1,0 +1,29 @@
+{
+  "mounts": [
+    {
+      "source": "${localEnv:DOTFILES}/shell/.profile",
+      "target": "${localEnv:HOME}/.profile",
+      "type": "bind"
+    },
+    {
+      "source": "${localEnv:DOTFILES}/shell/.config/environment.d",
+      "target": "${localEnv:HOME}/.config/environment.d",
+      "type": "bind"
+    },
+    {
+      "source": "${localEnv:DOTFILES}/bash/.bashrc",
+      "target": "${localEnv:HOME}/.bashrc",
+      "type": "bind"
+    },
+    {
+      "source": "${localEnv:DOTFILES}/bash/.bash_profile",
+      "target": "${localEnv:HOME}/.bash_profile",
+      "type": "bind"
+    },
+    {
+      "source": "${localEnv:DOTFILES}/bash/.inputrc",
+      "target": "${localEnv:HOME}/.inputrc",
+      "type": "bind"
+    }
+  ]
+}

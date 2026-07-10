@@ -1,0 +1,28 @@
+{
+  // Shared Nix layer — included in every stack (right after `base`).
+  //
+  // Provides TWO persistent named volumes (shared across sandboxes, surviving
+  // weekly image rebuilds) and the container-create bootstrap that installs Nix +
+  // the pinned dctl global toolset into them ONCE:
+  //   - dctl-nix-store-<user> → /nix                  (the store)
+  //   - dctl-nix-state-<user> → ~/.local/state/nix    (XDG per-user state:
+  //     profile, generations, the ~/.local/state/nix/profile symlink)
+  // Persisting the state volume (with use-xdg-base-directories) means recreates
+  // just re-source the profile — no reinstall. See images/agents/nix-bootstrap.sh
+  // and dctl/nix-devcontainers.md (in the dotfiles repo).
+  "mounts": [
+    {
+      "source": "dctl-nix-store-${localEnv:USER}",
+      "target": "/nix",
+      "type": "volume"
+    },
+    {
+      "source": "dctl-nix-state-${localEnv:USER}",
+      "target": "${localEnv:HOME}/.local/state/nix",
+      "type": "volume"
+    }
+  ],
+  "onCreateCommand": {
+    "nix": "bash /opt/dctl/nix-bootstrap.sh"
+  }
+}

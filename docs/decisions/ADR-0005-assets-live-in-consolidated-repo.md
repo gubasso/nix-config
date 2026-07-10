@@ -27,4 +27,8 @@ asset path.
 ## Status
 
 Accepted. Supersedes
-[ADR-0003](ADR-0003-assets-live-in-consumer.md).
+[ADR-0003](ADR-0003-assets-live-in-consumer.md). Its all-public-assets stance is
+partially superseded by
+[ADR-0009](ADR-0009-private-overlay-source-of-truth.md): private/personal and
+work-SUSE assets now live in private `nix-secrets`, while `home/assets/` here
+keeps only generic, public-safe assets.

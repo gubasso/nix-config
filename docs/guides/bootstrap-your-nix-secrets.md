@@ -16,12 +16,14 @@ secrets; this framework holds everything shared.
       username = "me";
       hostModule = ./hosts/myhost;          # default.nix in that dir
       homeModule = ./hosts/myhost/home.nix;
-      assetsDir = ./home/assets;            # your Home Manager dotfile tree
+      publicAssetsDir = ./home/assets;      # your Home Manager dotfile tree
+      # privateAssetsDir = ./home/private;  # optional per-host overlay tree
       hostSettings = { dpi = 192; scale = 2; };
     };
   };
 }
 ```
+
 The consumer needs **only** `nix-config` as an input — nixpkgs, home-manager,
 disko, sops-nix, and nixos-hardware all arrive transitively through it. `mkHost`
 runs against `nix-config`'s pinned nixpkgs.
@@ -64,6 +66,7 @@ mkDisko {
   inherit luksPasswordFile;
 }
 ```
+
 `hosts/myhost/home.nix` — the shared home base is injected, so this only holds
 host-only extras:
 
@@ -80,9 +83,29 @@ expect: `bash/hosts/<hostname>.bash`, `starship/`, `nvim/`, `yazi/`, `rofi/`,
 
 ## 4. Secrets
 
-Copy `.sops.yaml.example` from this repo to `.sops.yaml` in the consumer, fill in
-real age recipients, and add encrypted files under `secrets/<host>/`. The
-`sops-nix` module is already injected by `mkHost`.
+Create a `.sops.yaml` in the consumer with your own age recipients and creation
+rules, then add encrypted files under `secrets/<host>/`. The `sops-nix` module is
+already injected by `mkHost`. A minimal per-host rule looks like:
+
+```yaml
+keys:
+  - &myhost age1replace-with-your-real-host-recipient
+creation_rules:
+  - path_regex: secrets/myhost/[^/]+\.yaml$
+    key_groups:
+      - age:
+          - *myhost
+```
+
+This framework's own `.sops.yaml` is an intentionally empty placeholder
+(`keys: []`, `creation_rules: []`); the consumer owns the concrete recipients.
+
+Before tracking secret changes, run the plaintext guard from the `nix-config`
+checkout:
+
+```bash
+scripts/check-no-plaintext-secrets.sh secrets
+```
 
 ## 5. Build
 

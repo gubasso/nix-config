@@ -5,5 +5,6 @@
 result
 result-*
 
-# docs-design: drafts live outside shipped docs
+# docs-design: drafts live outside shipped docs — never shipped, either spelling
 /.draft/
+/.drafts/

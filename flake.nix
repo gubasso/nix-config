@@ -1,5 +1,5 @@
 {
-  description = "Consolidated NixOS + Home Manager source of truth for hosts, modules, assets, overlays, and packages.";
+  description = "Public NixOS + Home Manager framework, modules, overlays, packages, and public-safe assets.";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -21,9 +21,8 @@
 
     nixos-hardware.url = "github:NixOS/nixos-hardware";
 
-    # Personal dwm fork (SoT: github.com/gubasso/dwm, branch rice). Not a flake;
-    # consumed only as a source tree by pkgs/dwm. Bump with:
-    #   nix flake update dwm-fork
+    # Public GitHub fork exception: github.com/gubasso/dwm is an intentional
+    # public namespace reference, not private host or work data.
     dwm-fork = {
       url = "github:gubasso/dwm/rice";
       flake = false;
@@ -41,11 +40,6 @@
       };
       mkHost = import ./lib/mk-host.nix { inherit inputs; };
       mkHomeHost = import ./lib/mk-home-host.nix { inherit inputs; };
-      gear = import ./hosts/gear.nix;
-      assetsDir = ./home/assets;
-      vmtestLuksPasswordFile = "${nixpkgs.legacyPackages.${system}.writeText "luks-vmtest-password"
-        "disko"
-      }";
     in
     {
       lib = {
@@ -53,8 +47,6 @@
         mkDisko = import ./lib/mk-disko.nix;
       };
 
-      # Shared system modules. mkHost injects the standard set automatically;
-      # these are also exported for consumers that compose their own host.
       nixosModules = {
         system-audio = ./modules/system/audio.nix;
         system-base = ./modules/system/base.nix;
@@ -67,8 +59,6 @@
         vm = ./modules/vm.nix;
       };
 
-      # Home Manager modules. mkHost injects `common` (which imports the rest);
-      # exported here for direct composition.
       homeModules = {
         common = ./modules/home/common.nix;
         core-cli = ./modules/home/core-cli.nix;
@@ -83,72 +73,6 @@
       packages.${system} = {
         dwm = pkgs.dwm;
         dwm-session = pkgs.dwm-session;
-      };
-
-      nixosConfigurations = {
-        orion = mkHost {
-          hostname = "orion";
-          username = gear.onyx.username;
-          hostModule = ./hosts/orion;
-          homeModule = ./hosts/orion/home.nix;
-          inherit assetsDir;
-          hostSettings = gear.onyx.hostSettings // {
-            vmSshPort = 2221;
-          };
-        };
-
-        lyra = mkHost {
-          hostname = "lyra";
-          username = gear.quartz.username;
-          hostModule = ./hosts/lyra;
-          homeModule = ./hosts/lyra/home.nix;
-          inherit assetsDir;
-          hostSettings = gear.quartz.hostSettings // {
-            vmSshPort = 2222;
-          };
-        };
-
-        orion-vmtest = mkHost {
-          hostname = "orion";
-          username = gear.onyx.username;
-          hostModule = ./hosts/orion;
-          homeModule = ./hosts/orion/home.nix;
-          inherit assetsDir;
-          hostSettings = gear.onyx.hostSettings // {
-            vmSshPort = 2221;
-          };
-          luksPasswordFile = vmtestLuksPasswordFile;
-        };
-
-        lyra-vmtest = mkHost {
-          hostname = "lyra";
-          username = gear.quartz.username;
-          hostModule = ./hosts/lyra;
-          homeModule = ./hosts/lyra/home.nix;
-          inherit assetsDir;
-          hostSettings = gear.quartz.hostSettings // {
-            vmSshPort = 2222;
-          };
-          luksPasswordFile = vmtestLuksPasswordFile;
-        };
-      };
-
-      homeConfigurations = {
-        "gubasso@nova" = mkHomeHost {
-          hostname = "nova";
-          username = gear.onyx.username;
-          homeModule = ./hosts/nova/home.nix;
-          inherit assetsDir;
-          hostSettings = gear.onyx.hostSettings;
-        };
-
-        "gbasso@tumblesuse" = mkHomeHost {
-          hostname = "tumblesuse";
-          username = gear.quartz.username;
-          homeModule = ./hosts/tumblesuse/home.nix;
-          inherit assetsDir;
-          hostSettings = gear.quartz.hostSettings;
-        };
       };
 
       formatter.${system} = pkgs.nixfmt-rfc-style;

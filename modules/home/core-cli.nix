@@ -1,10 +1,12 @@
 # CLI shell base: bash + starship + the terminal tool belt, plus the config
-# assets they read. Asset files come from the consumer's tree via `assetsDir`
-# (threaded by lib/mk-host.nix); `hostname` selects the per-host bash fragment.
+# assets they read. Generic files come from the public asset tree; private
+# consumers can overlay per-host shell fragments from a private asset tree.
 {
+  lib,
   pkgs,
   hostname,
-  assetsDir,
+  publicAssetsDir,
+  privateAssetsDir ? null,
   ...
 }:
 
@@ -43,9 +45,6 @@
   programs.eza.enable = true;
   programs.bat.enable = true;
 
-  # Auto-activate per-project Nix devShells (and their layered Poetry venvs) on
-  # cd. nix-direnv caches the flake eval; the default bash integration installs
-  # the prompt hook.
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;
@@ -56,8 +55,6 @@
     defaultEditor = true;
     viAlias = true;
     vimAlias = true;
-    # Adopt the 26.05 defaults (providers off) instead of the stateVersion<26.05
-    # legacy default; no Ruby/Python remote-plugin providers, smaller closure.
     withRuby = false;
     withPython3 = false;
   };
@@ -71,25 +68,25 @@
     yt-dlp
   ];
 
-  # Per-host bash fragment; the consumer's assetsDir must carry
-  # bash/hosts/<hostname>.bash for each host it builds.
-  xdg.configFile."bash/hosts/${hostname}.bash".source = assetsDir + "/bash/hosts/${hostname}.bash";
-  xdg.configFile."starship.toml".source = assetsDir + "/starship/starship.toml";
-  xdg.configFile."starship-tty.toml".source = assetsDir + "/starship/starship-tty.toml";
-  xdg.configFile."git/allowed_signers".source = assetsDir + "/git/allowed_signers";
-  xdg.configFile."direnv/direnvrc".source = assetsDir + "/direnv/direnvrc";
-  xdg.configFile."direnv/direnv.toml".source = assetsDir + "/direnv/direnv.toml";
-  xdg.configFile."nvim".source = assetsDir + "/nvim";
-  xdg.configFile."yazi/yazi.toml".source = assetsDir + "/yazi/yazi.toml";
-  xdg.configFile."yazi/init.lua".source = assetsDir + "/yazi/init.lua";
-  xdg.configFile."yazi/theme.toml".source = assetsDir + "/yazi/theme.toml";
-  xdg.configFile."yazi/package.toml".source = assetsDir + "/yazi/package.toml";
-  # theme.toml selects the `everforest-medium` flavor, which yazi loads from
-  # ~/.config/yazi/flavors/everforest-medium.yazi/. Vendor it so the flavor
-  # reference resolves on a fresh activation.
-  xdg.configFile."yazi/flavors/everforest-medium.yazi".source =
-    assetsDir + "/yazi/flavors/everforest-medium.yazi";
-  xdg.configFile."yt-dlp/config".source = assetsDir + "/yt-dlp/config";
-  xdg.configFile."gnupg/gpg-agent.conf".source = assetsDir + "/gpg/gpg-agent.conf";
-  home.file.".ssh/config".source = assetsDir + "/ssh/config";
+  xdg.configFile = {
+    "starship.toml".source = publicAssetsDir + "/starship/starship.toml";
+    "starship-tty.toml".source = publicAssetsDir + "/starship/starship-tty.toml";
+    "git/allowed_signers".source = publicAssetsDir + "/git/allowed_signers";
+    "direnv/direnvrc".source = publicAssetsDir + "/direnv/direnvrc";
+    "direnv/direnv.toml".source = publicAssetsDir + "/direnv/direnv.toml";
+    "nvim".source = publicAssetsDir + "/nvim";
+    "yazi/yazi.toml".source = publicAssetsDir + "/yazi/yazi.toml";
+    "yazi/init.lua".source = publicAssetsDir + "/yazi/init.lua";
+    "yazi/theme.toml".source = publicAssetsDir + "/yazi/theme.toml";
+    "yazi/package.toml".source = publicAssetsDir + "/yazi/package.toml";
+    "yazi/flavors/everforest-medium.yazi".source =
+      publicAssetsDir + "/yazi/flavors/everforest-medium.yazi";
+    "yt-dlp/config".source = publicAssetsDir + "/yt-dlp/config";
+    "gnupg/gpg-agent.conf".source = publicAssetsDir + "/gpg/gpg-agent.conf";
+  }
+  // lib.optionalAttrs (privateAssetsDir != null) {
+    "bash/hosts/${hostname}.bash".source = privateAssetsDir + "/bash/hosts/${hostname}.bash";
+  };
+
+  home.file.".ssh/config".source = publicAssetsDir + "/ssh/config";
 }

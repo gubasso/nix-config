@@ -1,0 +1,120 @@
+# Pre-commit configuration for nix-config (public framework).
+# Install: pre-commit install --hook-type pre-commit --hook-type pre-push
+# Run all: pre-commit run --all-files
+# Update:  pre-commit autoupdate
+#
+# Enforcement philosophy (see docs/decisions/ADR-0010):
+#   - Consolidated community hooks do the heavy lifting: secret/private-key
+#     detection and baseline hygiene, generically, without ever naming a private
+#     string. No committed denylist of hostnames/usernames exists — that would
+#     leak the very identifiers it guards.
+#   - `repo: local` scripts exist ONLY for cases with no consolidated equivalent:
+#     the sops-managed-secrets guard and the public flake.lock host allowlist.
+#     Both encode allow-rules, not private data.
+#   - Fast, auto-fixing checks run at pre-commit; slow or networked checks (deep
+#     secret-history scan, documentation link check) run at pre-push.
+#   - Nix evaluation/formatting stays human-only (see CLAUDE.md); this config
+#     never runs `nix build`/`flake check`/`fmt`.
+
+default_install_hook_types: [pre-commit, pre-push]
+default_stages: [pre-commit]
+
+exclude: |
+  (?x)^(
+    result|
+    result-.*
+  )$
+
+repos:
+  # --- meta: validate this config itself ---
+  - repo: meta
+    hooks:
+      - id: check-hooks-apply
+      - id: check-useless-excludes
+
+  # --- baseline hygiene (fast, auto-fixing) ---
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: check-added-large-files
+        args: ["--maxkb=2048"]
+      - id: check-yaml
+      - id: check-json
+      - id: check-vcs-permalinks
+
+  # --- security: secret / private-key detection (generic; no denylist) ---
+  # Lightweight private-key detection on every commit.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: detect-private-key
+
+  # Fast Rust secret scanner on pre-commit.
+  - repo: https://github.com/sirwart/ripsecrets
+    rev: v0.1.11
+    hooks:
+      - id: ripsecrets
+        stages: [pre-commit]
+
+  # Thorough secret-history scan on pre-push only (slower, git-history aware).
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+        stages: [pre-push]
+        pass_filenames: false
+
+  # --- shell: the repo's helper scripts ---
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+        types_or: [bash, sh, shell]
+        args: ["--severity=warning"]
+
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.12.0-2
+    hooks:
+      - id: shfmt
+        types_or: [bash, sh, shell]
+        args: ["-i", "2", "-ci", "-w"]
+
+  # --- docs: link check (network + slow -> pre-push only) ---
+  - repo: https://github.com/lycheeverse/lychee
+    rev: lychee-v0.24.2
+    hooks:
+      - id: lychee
+        stages: [pre-push]
+        types: [markdown]
+        args: [--no-progress]
+
+  # --- local: custom guards with no consolidated equivalent ---
+  - repo: local
+    hooks:
+      # Every file under secrets/** must be sops-managed (no plaintext).
+      - id: check-no-plaintext-secrets
+        name: no plaintext under secrets/**
+        entry: scripts/check-no-plaintext-secrets.sh secrets
+        language: script
+        pass_filenames: false
+        files: ^secrets/
+        stages: [pre-commit]
+
+      # Public flake.lock may reference only allowlisted public hosts
+      # (guards the one irreversible leak: a private input URL/revision).
+      - id: check-flake-lock-public
+        name: flake.lock references only public hosts
+        entry: scripts/check-flake-lock-public.sh flake.lock
+        language: script
+        pass_filenames: false
+        files: ^flake\.lock$
+        stages: [pre-commit]

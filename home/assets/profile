@@ -1,8 +1,8 @@
 # ~/.profile - Fallback for TTY-only sessions (SSH, VT)
 # Primary source: ~/.config/environment.d/
 
-[ -n "${ORION_PROFILE_LOADED:-}" ] && return 0
-export ORION_PROFILE_LOADED=1
+[ -n "${DOTFILES_PROFILE_LOADED:-}" ] && return 0
+export DOTFILES_PROFILE_LOADED=1
 
 # Source environment.d configs for non-systemd sessions
 set -a

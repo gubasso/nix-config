@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Open ChatGPT Temp Chat",
+  "version": "1.0.0",
+  "permissions": [
+    "tabs"
+  ],
+  "background": {
+    "service_worker": "sw.js"
+  },
+  "commands": {
+    "open-temp-chat": {
+      "description": "Open ChatGPT temporary chat in a new tab"
+    }
+  }
+}

@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+# Supervisor and aggregator for right-side dwm status modules.
+# Spawns module scripts as children, reads their output files from tmpfs,
+# and updates WM_NAME only when the composed string changes.
+#
+# Modules write to $DWM_STATUS_DIR/{updates,wifi}.
+# This script reads those files with shell built-ins (no forks) and joins
+# non-empty values as "updates | wifi".
+
+set -euo pipefail
+
+DWM_STATUS_READER_INTERVAL="${DWM_STATUS_READER_INTERVAL:-2}"
+
+# Resolve own directory so modules are found relative to this script, not CWD.
+# CDPATH='' prevents cd from matching entries in CDPATH.
+SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/../lib/dwm-status-lib"
+CHILD_PIDS=()
+
+start_module() {
+  local module_script=$1
+  "$SCRIPT_DIR/$module_script" &
+  CHILD_PIDS+=("$!")
+}
+
+# Kill child modules, wait for exit, remove runtime files.
+cleanup() {
+  local pid
+  for pid in "${CHILD_PIDS[@]:-}"; do
+    kill "$pid" 2>/dev/null || true
+  done
+  wait "${CHILD_PIDS[@]:-}" 2>/dev/null || true
+
+  # battery: stale file from prior runs before module was removed from the bar.
+  rm -f "$DWM_STATUS_DIR"/updates "$DWM_STATUS_DIR"/wifi "$DWM_STATUS_DIR"/battery 2>/dev/null || true
+  rmdir "$DWM_STATUS_DIR" 2>/dev/null || true
+}
+
+trap cleanup EXIT INT TERM
+
+dwm_status_init_dir
+
+start_module "dwm-status-updates"
+start_module "dwm-status-wifi"
+
+# Clear any compiled-in/default dwm status before first loop iteration.
+xsetroot -name ""
+
+# Aggregator loop: read module files, join non-empty values, update bar.
+prev=""
+while true; do
+  parts=()
+
+  for mod in updates wifi; do
+    file="$DWM_STATUS_DIR/$mod"
+    value=""
+    if [[ -r "$file" ]]; then
+      IFS= read -r value <"$file" || value=""
+    fi
+    [[ -n "$value" ]] && parts+=("$value")
+  done
+
+  # Join with " | " separator, skipping empty modules.
+  curr=""
+  for i in "${!parts[@]}"; do
+    ((i > 0)) && curr+=" | "
+    curr+="${parts[$i]}"
+  done
+
+  # Only call xsetroot when content actually changed (avoids X11 round-trips).
+  if [[ "$curr" != "$prev" ]]; then
+    xsetroot -name "$curr"
+    prev="$curr"
+  fi
+
+  sleep "$DWM_STATUS_READER_INTERVAL"
+done

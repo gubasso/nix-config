@@ -1,0 +1,25 @@
+#!/bin/sh
+# startdwm — restart loop for dwm
+# Mod+Shift+Q restarts dwm. super+alt+q ends the X session (sxhkdrc).
+# Reference: https://wiki.archlinux.org/title/Dwm#Restart_dwm
+
+crashes=0
+while true; do
+  start=$(date +%s)
+  dwm 2>>~/.dwm.log
+  elapsed=$(($(date +%s) - start))
+
+  # Normal restart (user-initiated Mod+Shift+Q): reset counter
+  if [ "$elapsed" -ge 3 ]; then
+    crashes=0
+    continue
+  fi
+
+  # Rapid crash: back off then bail
+  crashes=$((crashes + 1))
+  if [ "$crashes" -ge 5 ]; then
+    echo "startdwm: dwm crashed 5 times in quick succession, giving up" >>~/.dwm.log
+    break
+  fi
+  sleep 1
+done

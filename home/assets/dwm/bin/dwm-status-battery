@@ -1,0 +1,163 @@
+#!/usr/bin/env bash
+# Battery status module for dwm right bar.
+# Writes a single-line status to $DWM_STATUS_DIR/battery.
+#
+# Output examples: "󰂄 72% 1:15" (charging), "󰁾 65%" (discharging),
+# "! 󰂎 8%" (critical), "󰚥 80%" (not charging/TLP), "󰁹" (full).
+#
+# Primary timing: udev events (instant response to AC plug/unplug).
+# Fallback: 60s poll if udevadm is unavailable.
+
+set -euo pipefail
+
+# Resolve own directory so shared library is found relative to this script.
+SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/../lib/dwm-status-lib"
+
+DWM_STATUS_BAT_PATH="${DWM_STATUS_BAT_PATH:-/sys/class/power_supply/BAT0}"
+DWM_STATUS_BATTERY_POLL_INTERVAL="${DWM_STATUS_BATTERY_POLL_INTERVAL:-60}"
+
+OUT_FILE="$DWM_STATUS_DIR/battery"
+
+# Zero-fork sysfs reader using nameref. Sets the caller's variable directly
+# via bash nameref (local -n), avoiding the subshell fork that $() requires.
+read_sysfs() {
+  local -n __out=$1
+  IFS= read -r __out <"$2" 2>/dev/null || __out="${3:-}"
+}
+
+# Nerd Font battery icon tiered by capacity.
+battery_icon() {
+  local cap=$1
+  if ! [[ "$cap" =~ ^[0-9]+$ ]]; then
+    printf '󰁹'
+    return
+  fi
+
+  if ((cap <= 10)); then
+    printf '󰂎'
+  elif ((cap <= 30)); then
+    printf '󰁺'
+  elif ((cap <= 50)); then
+    printf '󰁼'
+  elif ((cap <= 70)); then
+    printf '󰁾'
+  else
+    printf '󰁹'
+  fi
+}
+
+# Estimate remaining charge/discharge time from sysfs power rate.
+# Uses energy_now/energy_full/power_now (µWh/µW) with charge_now/
+# charge_full/current_now (µAh/µA) as fallback for different drivers.
+# Returns empty (exit 1) when rate data is unavailable.
+calc_eta() {
+  local mode=$1
+  local now full rate rem mins h m
+
+  if [[ -r "$DWM_STATUS_BAT_PATH/energy_now" ]]; then
+    read_sysfs now "$DWM_STATUS_BAT_PATH/energy_now" ""
+    read_sysfs full "$DWM_STATUS_BAT_PATH/energy_full" ""
+    read_sysfs rate "$DWM_STATUS_BAT_PATH/power_now" ""
+  elif [[ -r "$DWM_STATUS_BAT_PATH/charge_now" ]]; then
+    read_sysfs now "$DWM_STATUS_BAT_PATH/charge_now" ""
+    read_sysfs full "$DWM_STATUS_BAT_PATH/charge_full" ""
+    read_sysfs rate "$DWM_STATUS_BAT_PATH/current_now" ""
+  else
+    return 1
+  fi
+
+  [[ "$now" =~ ^[0-9]+$ ]] || return 1
+  [[ "$full" =~ ^[0-9]+$ ]] || return 1
+  [[ "$rate" =~ ^[0-9]+$ ]] || return 1
+  ((rate > 0)) || return 1
+
+  # remaining = (full - now) for charging, now for discharging.
+  # ETA in minutes = remaining * 60 / rate.
+  if [[ "$mode" == "charging" ]]; then
+    rem=$((full - now))
+  else
+    rem=$now
+  fi
+
+  ((rem > 0)) || {
+    printf '0:00'
+    return 0
+  }
+
+  mins=$((rem * 60 / rate))
+  h=$((mins / 60))
+  m=$((mins % 60))
+  printf '%d:%02d' "$h" "$m"
+}
+
+# Read sysfs and write formatted battery status to the output file.
+update_once() {
+  local cap status icon eta text
+
+  read_sysfs cap "$DWM_STATUS_BAT_PATH/capacity" "?"
+  read_sysfs status "$DWM_STATUS_BAT_PATH/status" "Unknown"
+
+  case "$status" in
+    Charging)
+      eta=$(calc_eta charging || true)
+      if [[ -n "$eta" ]]; then
+        text="󰂄 ${cap}% ${eta}"
+      else
+        text="󰂄 ${cap}%"
+      fi
+      ;;
+    "Not charging")
+      # TLP throttle state — AC connected but battery not charging.
+      text="󰚥 ${cap}%"
+      ;;
+    Full)
+      text="󰁹"
+      ;;
+    *)
+      icon=$(battery_icon "$cap")
+      if [[ "$cap" =~ ^[0-9]+$ ]] && ((cap <= 10)); then
+        text="! ${icon} ${cap}%"
+      else
+        text="${icon} ${cap}%"
+      fi
+      ;;
+  esac
+
+  dwm_status_write "$OUT_FILE" "$text"
+}
+
+# Event-driven loop using udev. The --udev flag ensures we receive events
+# after userspace has processed them (not raw kernel events which may fire
+# before sysfs values update). Sleep 0.3s debounces rapid udev bursts.
+run_udev_loop() {
+  command -v udevadm >/dev/null 2>&1 || return 1
+
+  udevadm monitor --udev --subsystem-match=power_supply 2>/dev/null | while IFS= read -r _; do
+    sleep 0.3
+    update_once
+  done
+}
+
+trap 'exit 0' INT TERM
+
+dwm_status_init_dir
+
+# No battery device (desktop): write empty and exit.
+if [[ ! -d "$DWM_STATUS_BAT_PATH" ]]; then
+  dwm_status_write "$OUT_FILE" ""
+  exit 0
+fi
+
+# Initial update, then try udev loop. Falls back to polling if udevadm
+# is unavailable or the udev pipe breaks.
+update_once
+
+if run_udev_loop; then
+  exit 0
+fi
+
+while true; do
+  sleep "$DWM_STATUS_BATTERY_POLL_INTERVAL"
+  update_once
+done

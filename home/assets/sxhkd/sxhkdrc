@@ -1,0 +1,184 @@
+#
+# sxhkd
+#
+# Syntax (per sxhkd(1) and the parser at baskerville/sxhkd src/parse.c):
+#   - A line that is empty or starts with `#` is ignored.
+#   - A line with no leading whitespace is a HOTKEY line.
+#   - A line that starts with whitespace is the COMMAND for the preceding
+#     hotkey. The parser uses isspace(first), so tab(s) or space(s) are both
+#     technically accepted — but the man page documents it as "starts with a
+#     space".
+#
+# House style for this file: indent command lines with FOUR SPACES. Do not
+# use tabs. Editors that auto-expand or mangle leading whitespace have
+# silently broken bindings here before, so the convention is spaces-only
+# and consistent across every binding below.
+#
+# Trailing-backslash line continuations (see night-light block) keep the
+# follow-up lines indented the same way.
+#
+
+# reload sxhkd configuration
+#
+# Note: Escape cannot be used here. sxhkd grabs Escape globally as the
+# chord-chain abort key (see `-a ABORT_KEYSYM` in sxhkd(1)), so any
+# binding involving Escape is silently consumed by the abort path before
+# user bindings are matched. The canonical bspwm example sxhkdrc ships
+# `super + Escape` for reload, but it does not actually fire — Escape
+# is kept as the abort key here so half-typed picker chords can be
+# cancelled.
+super + shift + r
+    pkill -USR1 -x sxhkd
+
+#
+# app launchers (flat bindings)
+#
+
+# command runner
+super + r
+    rofi -show run
+
+# file manager
+super + e
+    thunar
+
+#
+# pickers (chord mode: super + semicolon ; <key>)
+#
+# Convention: any binding that opens a chooser/menu — emoji, windows, clipboard,
+# calc, ssh hosts, etc. — lives under the `super + semicolon` prefix instead of
+# competing for a free top-level super-key. Press and release Super+`;`, then
+# the picker key within sxhkd's chord timeout. Add new pickers here, not as flat
+# bindings.
+#
+# Note: super + space is intentionally avoided as the prefix — upstream sxhkd
+# bug baskerville/sxhkd#83 makes super+space unreliable as a chord head.
+#
+# Reserved letters (do not reuse for new pickers):
+#   e → emoji
+#   w → windows
+
+# emoji picker
+super + semicolon ; e
+    rofimoji
+
+# window switcher
+super + semicolon ; w
+    rofi -show window -show-icons
+
+#
+# notifications (dunst)
+#
+
+# dismiss notification
+super + shift + n
+    dunstctl close
+
+# dismiss all notifications
+super + shift + d
+    dunstctl close-all
+
+# recall last notification
+super + shift + grave
+    dunstctl history-pop
+
+# toggle do-not-disturb
+super + ctrl + n
+    dunstctl set-paused toggle
+
+#
+# hardware: volume (PipeWire)
+#
+
+# volume up + OSD
+XF86AudioRaiseVolume
+    osd-notify volume up
+
+# volume down + OSD
+XF86AudioLowerVolume
+    osd-notify volume down
+
+# toggle sink mute + OSD
+XF86AudioMute
+    osd-notify volume mute
+
+# toggle mic mute + OSD
+XF86AudioMicMute
+    osd-notify mic toggle
+
+#
+# hardware: brightness
+#
+
+# brightness up + OSD
+XF86MonBrightnessUp
+    osd-notify brightness up
+
+# brightness down + OSD
+XF86MonBrightnessDown
+    osd-notify brightness down
+
+#
+# system status
+#
+
+# combined system status popup
+super + i
+    osd-notify status
+
+#
+# hardware: media playback (optional playerctl)
+#
+
+# play/pause
+XF86AudioPlay
+    command -v playerctl >/dev/null && playerctl play-pause 2>/dev/null
+
+# next track
+XF86AudioNext
+    command -v playerctl >/dev/null && playerctl next 2>/dev/null
+
+# previous track
+XF86AudioPrev
+    command -v playerctl >/dev/null && playerctl previous 2>/dev/null
+
+#
+# screenshots
+#
+
+# screenshot selection
+Print
+    flameshot gui
+
+#
+# night light (gammastep)
+#
+
+# toggle night light
+super + shift + g
+    if pgrep -x gammastep >/dev/null; then \
+        pkill -x gammastep; \
+    else \
+        gammastep & \
+    fi
+
+# disable night light for 1 hour
+super + ctrl + g
+    pkill -x gammastep; \
+    (sleep 3600; pgrep -x gammastep || gammastep &) &
+
+#
+# session
+#
+
+# lock screen
+ctrl + alt + l
+    xset s activate
+
+# quit X session (kill startdwm restart loop)
+super + alt + q
+    pkill -x startdwm
+
+# power menu
+ctrl + alt + Delete
+    rofi -show power -modi "power:rofi-power-menu"

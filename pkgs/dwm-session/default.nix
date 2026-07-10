@@ -15,7 +15,7 @@ pkgs.stdenvNoCC.mkDerivation {
   pname = "dwm-session";
   version = "0";
   # Host-neutral dwm X-session scripts, shared by every host that runs the dwm
-  # desktop (orion, lyra, ...).
+  # desktop.
   src = ../../session;
 
   dontConfigure = true;

@@ -1,6 +1,7 @@
 {
   pkgs,
   lib,
+  publicAssetsDir,
   ...
 }:
 
@@ -25,6 +26,21 @@ in
 
     displayManager.startx.enable = true;
   };
+
+  environment.etc."vconsole.conf".source = publicAssetsDir + "/system/console-keymap/vconsole.conf";
+  environment.etc."X11/xorg.conf.d/00-keyboard.conf".source =
+    publicAssetsDir + "/system/console-keymap/X11/xorg.conf.d/00-keyboard.conf";
+  environment.etc."X11/xorg.conf.d/30-libinput-pointer.conf".source =
+    publicAssetsDir + "/system/xorg-input/X11/xorg.conf.d/30-libinput-pointer.conf";
+  environment.etc."X11/xorg.conf.d/35-libinput-trackpoint.conf".source =
+    publicAssetsDir + "/system/xorg-input/X11/xorg.conf.d/35-libinput-trackpoint.conf";
+  environment.etc."X11/xorg.conf.d/40-libinput-touchpad.conf".source =
+    publicAssetsDir + "/system/xorg-input/X11/xorg.conf.d/40-libinput-touchpad.conf";
+  environment.etc."udev/rules.d/99-libinput-ignore-touchscreen.rules".source =
+    publicAssetsDir + "/system/xorg-input/udev/rules.d/99-libinput-ignore-touchscreen.rules";
+  environment.etc."greetd/dotfiles-source-config.toml".source =
+    publicAssetsDir + "/system/greetd/config.toml";
+  environment.etc."pam.d/greetd.dotfiles-source".source = publicAssetsDir + "/system/greetd/pam-greetd";
 
   console.keyMap = lib.mkDefault "us";
 

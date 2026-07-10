@@ -40,8 +40,7 @@ dbus-update-activation-environment --systemd \
   SSH_ASKPASS_REQUIRE
 
 xset s 300 5
-# Disable X server DPMS. On nova this avoids the Meteor Lake eDP black-screen
-# idle wedge; keep the same conservative X11 posture for orion.
+# Disable X server DPMS. Keep a conservative X11 posture for display power management.
 xset s noblank
 xset dpms 0 0 0
 xset -dpms
@@ -58,11 +57,11 @@ set -a
 set +a
 xss-lock -n @xsecurelockDimmer@ -l -- xsecurelock &
 
-# sxhkd is started here (not only from dwm's autostart.sh) because the orion
+# sxhkd is started here (not only from dwm's autostart.sh) because this
 # dwm derivation does not vendor the autostart patch this round, so the
 # autostart.sh hook never fires. Starting it from .xinitrc keeps the WM
 # keybind daemon alive regardless of the patch. If the autostart patch is
-# later committed to the dwm fork (github.com/gubasso/dwm @ rice), autostart.sh's
+# later committed to the dwm fork, autostart.sh's
 # pkill+restart run() safely supersedes this on each dwm reload.
 pgrep -x sxhkd || sxhkd &
 pgrep -x xsettingsd || xsettingsd -c "${GFX_XSETTINGSD:-$HOME/.config/xsettingsd/xsettingsd-metal.conf}" &

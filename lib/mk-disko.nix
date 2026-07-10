@@ -5,8 +5,8 @@
 #
 # Args:
 #   device   - block device to wipe (DESTRUCTIVE); verify with `lsblk` first.
-#   vgName   - LVM volume-group name (e.g. "orionvg", "lyravg").
-#   diskName - disko `disk.<name>` attribute (e.g. "orion-system").
+#   vgName   - LVM volume-group name (e.g. "systemvg").
+#   diskName - disko `disk.<name>` attribute (e.g. "system-disk").
 #   swapSize - swap LV size (default 32G).
 #   luksPasswordFile - path to a file holding the LUKS password. Default null,
 #              which leaves disko in interactive `askPassword` mode (the metal
