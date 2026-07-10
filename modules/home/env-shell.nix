@@ -26,6 +26,7 @@
     "environment.d/50-dotfiles.conf".source = publicAssetsDir + "/environment.d/50-dotfiles.conf";
     "environment.d/50-editor.conf".source = publicAssetsDir + "/environment.d/50-editor.conf";
     "environment.d/50-paths.conf".source = publicAssetsDir + "/environment.d/50-paths.conf";
+    "environment.d/50-projects.conf".source = publicAssetsDir + "/environment.d/50-projects.conf";
     "environment.d/60-kwallet-ssh.conf".source = publicAssetsDir + "/environment.d/60-kwallet-ssh.conf";
     "environment.d/60-gpg.conf".source = publicAssetsDir + "/environment.d/60-gpg.conf";
     "environment.d/50-xcursor.conf".source = publicAssetsDir + "/environment.d/50-xcursor.conf";
