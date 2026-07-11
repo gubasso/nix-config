@@ -175,7 +175,11 @@
     "dctl/devcontainer/zig/devcontainer.json".source =
       publicAssetsDir + "/dctl/devcontainer/zig/devcontainer.json";
     "dctl/images/agents".source = publicAssetsDir + "/dctl/images/agents";
-    "riptask/config.yaml".source = publicAssetsDir + "/riptask/config.yaml";
+    # NB: riptask/config.yaml is deliberately NOT managed here. It is the User
+    # layer of riptask's config hierarchy, and `tsk config set`/`edit` rewrite it
+    # at runtime (serde_yaml_ng serialize → tempfile → atomic rename), which would
+    # clobber a read-only /nix/store symlink and lose comments/ordering — the same
+    # runtime-state anti-pattern as dctl/projects.yaml. riptask owns the live file.
     "rclone/.rcloneignore".source = publicAssetsDir + "/rclone/rcloneignore";
     "dwm/Xresources".source = publicAssetsDir + "/dwm/Xresources";
     # xsettingsd config is generated per-context by modules/home/graphics.nix,
