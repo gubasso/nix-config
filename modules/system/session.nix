@@ -14,6 +14,42 @@ let
     "libsForQt5"
     "kwallet-pam"
   ] (throw "No kwallet-pam package found in nixpkgs") pkgs) pkgs;
+
+  # Re-arm xsecurelock and wake the display immediately after resume. Ported
+  # from the old ~/.dotfiles system-sleep hook (Arch /usr/lib/systemd/
+  # system-sleep). systemd runs system-sleep scripts as root with a minimal
+  # PATH, so the tools are pinned here; `su` needs the setuid wrapper, hence
+  # /run/wrappers/bin. USR2 alone doesn't reset DPMS, so we also force dpms on.
+  # NB: verify on-host (orion/lyra) -- cannot be activated from a non-NixOS host.
+  xsecurelockSleepHook = pkgs.writeShellScript "xsecurelock-sleep" ''
+    export PATH=${
+      lib.makeBinPath [
+        pkgs.procps
+        pkgs.xset
+        pkgs.coreutils
+        pkgs.gnused
+        pkgs.shadow
+      ]
+    }:/run/wrappers/bin:$PATH
+    if [ "$1" = "post" ]; then
+      pid=$(pgrep -x xsecurelock | head -1)
+      if [ -n "$pid" ]; then
+        user=$(stat -c %U "/proc/$pid")
+        display=$(tr '\0' '\n' <"/proc/$pid/environ" 2>/dev/null | sed -n 's/^DISPLAY=//p')
+        xauth=$(tr '\0' '\n' <"/proc/$pid/environ" 2>/dev/null | sed -n 's/^XAUTHORITY=//p')
+
+        kill -USR2 "$pid"
+
+        # Wake display from DPMS (USR2 doesn't reset DPMS).
+        if [ -n "$display" ]; then
+          xset_env="DISPLAY=$display"
+          [ -n "$xauth" ] && xset_env="$xset_env XAUTHORITY=$xauth"
+          su "$user" -c "$xset_env xset dpms force on" 2>/dev/null || true
+        fi
+      fi
+    fi
+    exit 0
+  '';
 in
 {
   services = {
@@ -71,6 +107,14 @@ in
         publicAssetsDir + "/system/xorg-input/udev/rules.d/99-libinput-ignore-touchscreen.rules";
       "greetd/dotfiles-source-config.toml".source = publicAssetsDir + "/system/greetd/config.toml";
       "pam.d/greetd.dotfiles-source".source = publicAssetsDir + "/system/greetd/pam-greetd";
+
+      # Lock/resume hook: re-arm xsecurelock + wake DPMS on resume (see the
+      # xsecurelockSleepHook binding above). Mode forces an executable copy so
+      # systemd-sleep can run it.
+      "systemd/system-sleep/xsecurelock" = {
+        source = xsecurelockSleepHook;
+        mode = "0755";
+      };
     };
 
     systemPackages = [
