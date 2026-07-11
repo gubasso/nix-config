@@ -4,7 +4,7 @@
 //
 // This is the shared-infra layer at the root of every manifest's layer stack.
 // It sets remoteUser, init, shutdownAction, terminal env, and the universal
-// bind mounts that every container needs (gitconfig, gh/glab CLIs).
+// bind mounts that every container needs (git config, gh/glab CLIs).
 //
 // -----------------------------------------------------------------------------
 // Host binary directories: why ~/.cargo/bin and ~/.local/bin are mounted
@@ -171,8 +171,8 @@
       "readonly": true
     },
     {
-      "source": "${localEnv:HOME}/.gitconfig",
-      "target": "${localEnv:HOME}/.gitconfig",
+      "source": "${localEnv:HOME}/.config/git",
+      "target": "${localEnv:HOME}/.config/git",
       "type": "bind",
       "readonly": true
     },
