@@ -3,18 +3,6 @@
 { pkgs, publicAssetsDir, ... }:
 
 {
-  programs.ssh = {
-    enable = true;
-    # Own the default `Host *` block explicitly (no HM defaults). The new
-    # settings API uses upstream OpenSSH directive names; bools render yes/no.
-    enableDefaultConfig = false;
-    settings."*" = {
-      AddKeysToAgent = "yes";
-      IdentitiesOnly = true;
-      ForwardAgent = false;
-    };
-  };
-
   # Back the SSH_AUTH_SOCK=$XDG_RUNTIME_DIR/ssh-agent.socket exported in
   # env-shell.nix. NixOS does not enable the openssh-shipped ssh-agent user unit
   # automatically. Run the agent on the fixed path at login; ExecStartPre clears

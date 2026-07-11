@@ -101,7 +101,6 @@
   };
 
   home.file = {
-    ".ssh/config".source = publicAssetsDir + "/ssh/config";
     ".inputrc".source = publicAssetsDir + "/bash/inputrc";
     ".editorconfig".source = publicAssetsDir + "/editorconfig/editorconfig";
   };
