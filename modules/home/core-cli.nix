@@ -76,8 +76,6 @@
     ripgrep
     shfmt
     trash-cli
-    yazi
-    yt-dlp
   ];
 
   xdg.configFile = {
@@ -87,13 +85,6 @@
     "direnv/direnvrc".source = publicAssetsDir + "/direnv/direnvrc";
     "direnv/direnv.toml".source = publicAssetsDir + "/direnv/direnv.toml";
     "nvim".source = publicAssetsDir + "/nvim";
-    "yazi/yazi.toml".source = publicAssetsDir + "/yazi/yazi.toml";
-    "yazi/init.lua".source = publicAssetsDir + "/yazi/init.lua";
-    "yazi/theme.toml".source = publicAssetsDir + "/yazi/theme.toml";
-    "yazi/package.toml".source = publicAssetsDir + "/yazi/package.toml";
-    "yazi/flavors/everforest-medium.yazi".source =
-      publicAssetsDir + "/yazi/flavors/everforest-medium.yazi";
-    "yt-dlp/config".source = publicAssetsDir + "/yt-dlp/config";
     "gnupg/gpg-agent.conf".source = publicAssetsDir + "/gpg/gpg-agent.conf";
   }
   // lib.optionalAttrs (privateAssetsDir != null) {
@@ -102,6 +93,5 @@
 
   home.file = {
     ".inputrc".source = publicAssetsDir + "/bash/inputrc";
-    ".editorconfig".source = publicAssetsDir + "/editorconfig/editorconfig";
   };
 }
