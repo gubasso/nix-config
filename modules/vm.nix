@@ -53,11 +53,11 @@
         }
       ];
 
-      # Mount the host's real dotfiles repo into the VM over 9p. Edit on the
-      # host, test in the VM (or edit in-place under /mnt/dotfiles).
-      sharedDirectories.dotfiles = {
-        source = "$HOME/.dotfiles";
-        target = "/mnt/dotfiles";
+      # Mount the host's Projects tree into the VM over 9p. Edit on the host,
+      # test in the VM (or edit in-place under /mnt/projects).
+      sharedDirectories.projects = {
+        source = "$HOME/Projects";
+        target = "/mnt/projects";
         securityModel = "mapped-xattr";
       };
     };

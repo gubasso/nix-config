@@ -29,7 +29,7 @@ The lock is **not** committed by tooling — generate it once on the host (where
 Nix + network exist), then commit it so image builds are reproducible:
 
 ```sh
-cd ~/.dotfiles/dctl/.config/dctl/images/agents/global-flake
+cd ~/.config/dctl/images/agents/global-flake
 nix flake lock          # or: nix flake update  (to refresh nixpkgs)
 git add flake.lock
 ```
