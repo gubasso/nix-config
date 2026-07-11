@@ -1,0 +1,64 @@
+{
+  "model": "opus[1m]",
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "env": {
+    "CLAUDE_SESSION_OAUTH_CMD": "gopass show -o claude/oauth-token",
+    "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "1",
+    "CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN": "1",
+    "BASH_DEFAULT_TIMEOUT_MS": "600000",
+    "BASH_MAX_TIMEOUT_MS": "600000"
+  },
+  "effortLevel": "high",
+  "permissions": {
+    "deny": [
+      "Bash(git push origin master:*)",
+      "Bash(git push origin main:*)",
+      "Bash(git push origin master)",
+      "Bash(git push origin main)",
+      "Bash(git push * master:*)",
+      "Bash(git push * main:*)",
+      "Bash(git push * HEAD:master:*)",
+      "Bash(git push * HEAD:main:*)",
+      "Bash(git push * HEAD:master)",
+      "Bash(git push * HEAD:main)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git push --force-with-lease:*)",
+      "Bash(git merge:*)",
+      "Bash(git rebase:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git reset HEAD~:*)",
+      "Bash(git checkout master:*)",
+      "Bash(git checkout main:*)",
+      "Bash(git checkout master)",
+      "Bash(git checkout main)",
+      "Bash(git switch master:*)",
+      "Bash(git switch main:*)",
+      "Bash(git switch master)",
+      "Bash(git switch main)"
+    ],
+    "defaultMode": "bypassPermissions"
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c '\"$HOME/.claude/hooks/executor-prex-stop-gate.sh\"'",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
+  },
+  "skipDangerousModePermissionPrompt": true,
+  "disableClaudeAiConnectors": true
+}

@@ -1,0 +1,5 @@
+# Health-probe profile used by `codex-session account health`.
+# Selected with `codex --profile ping`.
+
+model = "gpt-5.4-mini"
+model_reasoning_effort = "minimal"

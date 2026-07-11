@@ -61,6 +61,7 @@
 
       homeModules = {
         common = ./modules/home/common.nix;
+        agents = ./modules/home/agents.nix;
         core-cli = ./modules/home/core-cli.nix;
         desktop = ./modules/home/desktop.nix;
         env-shell = ./modules/home/env-shell.nix;

@@ -1,0 +1,10 @@
+# Medium tier — flagship, medium effort, full sandbox. The quality default for every
+# substantive call: prex stage 1 (plan), prex stage 3 (implement, fresh or resume), and
+# review-loop round 1. Selected with `codex --profile medium`.
+# Subscription-only: gpt-5.5 is the ChatGPT-auth flagship; medium effort keeps
+# reasoning-token burn (the quota lever) near gpt-5.4@medium parity for a better result.
+
+sandbox_mode = "danger-full-access"
+model = "gpt-5.5"
+model_reasoning_effort = "medium"
+plan_mode_reasoning_effort = "medium"

@@ -8,7 +8,6 @@
   home.sessionVariables = {
     EDITOR = "nvim";
     VISUAL = "nvim";
-    DOTFILES = "$HOME/.dotfiles";
     SSH_AUTH_SOCK = "\${XDG_RUNTIME_DIR}/ssh-agent.socket";
     SSH_ASKPASS = "\${HOME}/.local/bin/ssh-askpass-rofi";
     SSH_ASKPASS_REQUIRE = "prefer";
@@ -23,7 +22,6 @@
   ];
 
   xdg.configFile = {
-    "environment.d/50-dotfiles.conf".source = publicAssetsDir + "/environment.d/50-dotfiles.conf";
     "environment.d/50-editor.conf".source = publicAssetsDir + "/environment.d/50-editor.conf";
     "environment.d/50-paths.conf".source = publicAssetsDir + "/environment.d/50-paths.conf";
     "environment.d/50-projects.conf".source = publicAssetsDir + "/environment.d/50-projects.conf";

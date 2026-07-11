@@ -1,0 +1,4 @@
+config-layers:
+  - base
+  - projects
+  - plugins

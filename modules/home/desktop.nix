@@ -106,6 +106,16 @@
     "dunst/dunstrc".source = publicAssetsDir + "/dunst/dunstrc";
     "picom/picom.conf".source = publicAssetsDir + "/picom/picom.conf";
     "gammastep/config.ini".source = publicAssetsDir + "/gammastep/config.ini";
+
+    # PipeWire / WirePlumber user drop-ins (generic audio-quality tuning: 48 kHz
+    # clock with dynamic rates, no ALSA suspend, higher-quality Bluetooth
+    # codecs). Read from ~/.config by native and NixOS PipeWire alike.
+    "pipewire/pipewire.conf.d/10-clock-rates.conf".source =
+      publicAssetsDir + "/pipewire/pipewire.conf.d/10-clock-rates.conf";
+    "wireplumber/wireplumber.conf.d/50-bluez.conf".source =
+      publicAssetsDir + "/pipewire/wireplumber.conf.d/50-bluez.conf";
+    "wireplumber/wireplumber.conf.d/50-no-suspend.conf".source =
+      publicAssetsDir + "/pipewire/wireplumber.conf.d/50-no-suspend.conf";
     "sxhkd/sxhkdrc".source = publicAssetsDir + "/sxhkd/sxhkdrc";
     "dctl/default/devcontainer.json".source = publicAssetsDir + "/dctl/default/devcontainer.json";
     "dctl/devcontainer/agents/devcontainer.json".source =

@@ -1,0 +1,13 @@
+# Portable codex defaults shared by every codex-session config-recipe.
+# Per-profile overrides live in profiles/<name>.config.toml (sibling).
+
+web_search = "live"
+
+# Default reasoning effort for launches without --profile (e.g. the interactive
+# TUI): upstream's stock default is xhigh on gpt-5.5, which burns ~3-5x the
+# quota of medium. Model stays unset (stock default); profile tiers override.
+model_reasoning_effort = "medium"
+
+[features]
+multi_agent = true
+fast_mode = false

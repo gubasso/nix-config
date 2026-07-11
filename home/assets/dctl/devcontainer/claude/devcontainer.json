@@ -9,9 +9,9 @@
 //
 // All mounts are 1:1 host binds (same path inside and outside the
 // container) so any tool that reads/writes these paths Just Works
-// without an env override. The host is assumed set up — `dots claude`
-// / `dots claude-session` (or equivalents) have already materialized
-// the paths under HOME.
+// without an env override. The host is assumed set up — home-manager
+// (claude-session config) and the user's own live CLI state have
+// already materialized the paths under HOME.
 //
 // CLAUDE CODE CLI live state
 //   ~/.claude       — directory: project memory, conversation history,

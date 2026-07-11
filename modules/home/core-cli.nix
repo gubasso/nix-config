@@ -36,6 +36,13 @@
         if [ -r "$HOME/.config/bash/hosts/${hostname}.bash" ]; then
           . "$HOME/.config/bash/hosts/${hostname}.bash"
         fi
+
+        # bebash: load the standalone bebash framework (installed under
+        # ~/.local/lib/bebash by the bebash project) if present. It autoloads
+        # the personal overlay from ~/.local/share/bebash and ~/.config/bebash.
+        if [ -r "$HOME/.local/lib/bebash/init.bash" ]; then
+          . "$HOME/.local/lib/bebash/init.bash"
+        fi
       '';
     };
 
@@ -90,5 +97,9 @@
     "bash/hosts/${hostname}.bash".source = privateAssetsDir + "/bash/hosts/${hostname}.bash";
   };
 
-  home.file.".ssh/config".source = publicAssetsDir + "/ssh/config";
+  home.file = {
+    ".ssh/config".source = publicAssetsDir + "/ssh/config";
+    ".inputrc".source = publicAssetsDir + "/bash/inputrc";
+    ".editorconfig".source = publicAssetsDir + "/editorconfig/editorconfig";
+  };
 }

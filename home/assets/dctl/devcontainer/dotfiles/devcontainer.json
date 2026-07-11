@@ -5,18 +5,13 @@
   },
   "mounts": [
     {
-      "source": "${localEnv:DOTFILES}",
-      "target": "${localEnv:DOTFILES}",
-      "type": "bind"
-    },
-    {
       "source": "${localEnv:HOME}/.config/gcloud",
       "target": "${localEnv:HOME}/.config/gcloud",
       "type": "bind",
       "readonly": true
     },
     {
-      "source": "${localEnv:DOTFILES}/nvim/.config/nvim",
+      "source": "${localEnv:HOME}/.config/nvim",
       "target": "${localEnv:HOME}/.config/nvim",
       "type": "bind"
     }

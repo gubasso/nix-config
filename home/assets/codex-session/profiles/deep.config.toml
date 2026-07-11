@@ -1,0 +1,10 @@
+# Deep tier — flagship, high effort, full sandbox. ON-DEMAND ESCALATION ONLY — never a
+# skill default. The human picks it case by case: stuck/looping runs, novel design,
+# security-critical changes. Selected with `codex --profile deep`.
+# High effort burns ~3–5× the reasoning tokens of medium; before escalating, check whether
+# a tighter prompt or context refresh fixes the failure for free.
+
+sandbox_mode = "danger-full-access"
+model = "gpt-5.5"
+model_reasoning_effort = "high"
+plan_mode_reasoning_effort = "high"

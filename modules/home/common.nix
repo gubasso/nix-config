@@ -10,6 +10,7 @@
     ./desktop.nix
     ./graphics.nix
     ./keyring.nix
+    ./agents.nix
   ];
 
   home = {

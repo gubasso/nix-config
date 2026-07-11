@@ -2,7 +2,7 @@
   "name": "${localWorkspaceFolderBasename}-sandbox",
   "mounts": [
     {
-      "source": "${localEnv:DOTFILES}/bebash/.config/bebash",
+      "source": "${localEnv:HOME}/.config/bebash",
       "target": "${localEnv:HOME}/.config/bebash",
       "type": "bind"
     }
