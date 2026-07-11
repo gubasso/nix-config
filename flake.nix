@@ -75,14 +75,17 @@
         inherit (pkgs) dwm dwm-session;
       };
 
-      formatter.${system} = pkgs.nixfmt-rfc-style;
+      # `nix fmt` runs this with no file args; nixfmt-tree (nixfmt wrapped in
+      # treefmt) walks the tree and formats every .nix file. A bare `nixfmt`
+      # here would read stdin and hang. See `nix fmt --help`.
+      formatter.${system} = pkgs.nixfmt-tree;
 
       # Development toolchain (see docs/guides/development.md). `nix develop`,
       # or direnv via .envrc, puts these on PATH so the pre-commit hooks and the
       # justfile recipes resolve their tools.
       devShells.${system}.default = pkgs.mkShell {
         packages = with pkgs; [
-          nixfmt-rfc-style
+          nixfmt
           statix
           deadnix
           typos
@@ -99,7 +102,7 @@
       # are its package builds plus a repo-wide formatting gate.
       checks.${system} = {
         inherit (pkgs) dwm dwm-session;
-        formatting = pkgs.runCommand "nixfmt-check" { nativeBuildInputs = [ pkgs.nixfmt-rfc-style ]; } ''
+        formatting = pkgs.runCommand "nixfmt-check" { nativeBuildInputs = [ pkgs.nixfmt ]; } ''
           find ${./flake.nix} ${./lib} ${./modules} ${./overlays} ${./pkgs} \
             -name '*.nix' -print0 | xargs -0 nixfmt --check
           touch "$out"
