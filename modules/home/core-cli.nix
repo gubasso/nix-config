@@ -71,7 +71,10 @@
   home.packages = with pkgs; [
     bottom
     fd
+    git-cliff
+    pi-coding-agent
     ripgrep
+    shfmt
     trash-cli
     yazi
     yt-dlp
