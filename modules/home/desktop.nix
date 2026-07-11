@@ -55,8 +55,17 @@
         publicAssetsDir + "/applications/brave/webapp-google.desktop";
       ".local/share/applications/webapp-social.desktop".source =
         publicAssetsDir + "/applications/brave/webapp-social.desktop";
-      ".local/share/icons/hicolor/scalable/apps".source =
-        publicAssetsDir + "/icons/hicolor/scalable/apps";
+      # Icons are wired per-file (not as a whole-directory source) so a private
+      # consumer can add its own host-specific icons into the same hicolor
+      # theme dir — a directory source would be all-or-nothing and block that.
+      ".local/share/icons/hicolor/scalable/apps/brave-browser.svg".source =
+        publicAssetsDir + "/icons/hicolor/scalable/apps/brave-browser.svg";
+      ".local/share/icons/hicolor/scalable/apps/webapp-ai.svg".source =
+        publicAssetsDir + "/icons/hicolor/scalable/apps/webapp-ai.svg";
+      ".local/share/icons/hicolor/scalable/apps/webapp-google.svg".source =
+        publicAssetsDir + "/icons/hicolor/scalable/apps/webapp-google.svg";
+      ".local/share/icons/hicolor/scalable/apps/webapp-social.svg".source =
+        publicAssetsDir + "/icons/hicolor/scalable/apps/webapp-social.svg";
       ".local/share/brave-unpacked-extensions".source = publicAssetsDir + "/brave-unpacked-extensions";
       ".local/state/rofi/active-theme.rasi".source = publicAssetsDir + "/rofi/themes/everforest.rasi";
       ".npmrc".source = publicAssetsDir + "/npm/npmrc";
