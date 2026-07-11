@@ -72,6 +72,11 @@
     bottom
     fd
     git-cliff
+    # Node.js from nixpkgs (bundles npm/npx/corepack). We use npm's stock
+    # defaults -- no custom ~/.npmrc, no user-global prefix. Global CLIs come as
+    # nixpkgs derivations (nodePackages.*), not `npm install -g`; the default
+    # prefix points at the read-only store, which is the native Nix contract.
+    nodejs
     pi-coding-agent
     ripgrep
     shfmt

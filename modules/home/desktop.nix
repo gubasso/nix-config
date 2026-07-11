@@ -68,7 +68,6 @@
         publicAssetsDir + "/icons/hicolor/scalable/apps/webapp-social.svg";
       ".local/share/brave-unpacked-extensions".source = publicAssetsDir + "/brave-unpacked-extensions";
       ".local/state/rofi/active-theme.rasi".source = publicAssetsDir + "/rofi/themes/everforest.rasi";
-      ".npmrc".source = publicAssetsDir + "/npm/npmrc";
       ".Xresources".source = publicAssetsDir + "/dwm/Xresources";
       ".local/share/dwm/autostart_blocking.sh" = {
         source = publicAssetsDir + "/dwm/share/autostart_blocking.sh";

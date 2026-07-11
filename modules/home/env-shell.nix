@@ -17,7 +17,6 @@
     "$HOME/.cache/.bun/bin"
     "$HOME/.bun/bin"
     "$HOME/.local/bin"
-    "$HOME/.local/npm/bin"
     "$HOME/.cargo/bin"
   ];
 
