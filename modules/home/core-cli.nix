@@ -72,11 +72,12 @@
     bottom
     fd
     git-cliff
-    # Node.js from nixpkgs (bundles npm/npx/corepack). We use npm's stock
-    # defaults -- no custom ~/.npmrc, no user-global prefix. Global CLIs come as
-    # nixpkgs derivations (nodePackages.*), not `npm install -g`; the default
-    # prefix points at the read-only store, which is the native Nix contract.
+    # JS/Node runtimes from nixpkgs. npm ships stock defaults -- no custom
+    # ~/.npmrc, no user-global prefix; the default prefix is the read-only store,
+    # so global CLIs come as nix derivations, never `npm i -g` / `bun add -g`.
+    # bun is also required by the nvim yt_get_reference usercmd.
     nodejs
+    bun
     pi-coding-agent
     ripgrep
     shfmt
