@@ -6,6 +6,7 @@
 {
   imports = [
     ./env-shell.nix
+    ./nix.nix
     ./core-cli.nix
     ./desktop.nix
     ./graphics.nix
