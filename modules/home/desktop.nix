@@ -17,6 +17,9 @@
       fontconfig
       liberation_ttf
       nerd-fonts.hack
+      # devcontainer CLI (@devcontainers/cli): runtime dependency of the dctl
+      # workflow whose assets are wired below. Was a `bun add -g` install.
+      devcontainer
     ];
 
     file = {

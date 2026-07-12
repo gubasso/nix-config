@@ -82,6 +82,9 @@
     ripgrep
     shfmt
     trash-cli
+    # Web-based git GUI. Was an `npm -g` install under a ~/.local prefix; now
+    # from nixpkgs like the rest of the toolchain.
+    ungit
   ];
 
   xdg.configFile = {
