@@ -93,7 +93,7 @@ repos:
 
   # --- spelling: typo detection across text/docs ---
   - repo: https://github.com/crate-ci/typos
-    rev: v1
+    rev: v1.39.2
     hooks:
       - id: typos
         exclude: ^(home/assets/|secrets/)
@@ -137,7 +137,7 @@ repos:
 
   # --- docs: link check (network + slow -> pre-push only) ---
   - repo: https://github.com/lycheeverse/lychee
-    rev: nightly
+    rev: lychee-v0.24.2
     hooks:
       - id: lychee
         stages: [pre-push]
