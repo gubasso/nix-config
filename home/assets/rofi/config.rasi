@@ -1,6 +1,6 @@
 /*
   dwm launcher. DPI is inherited from the X server (Xft.dpi, set per-context by
-  ~/.xinitrc from modules/home/graphics.nix), so one config renders right on
+  ~/.xinitrc from modules/home/desktops/graphics.nix), so one config renders right on
   every host and in the VM. dpi: 0 = take DPI from X.
 */
 

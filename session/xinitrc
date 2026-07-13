@@ -8,7 +8,7 @@ if [ -f "$userresources" ]; then
 fi
 
 # X11 DPI / toolkit scaling -- single source of truth (Xft.dpi). profile.sh is
-# generated per-host by modules/home/graphics.nix and resolves VM vs metal at
+# generated per-host by modules/home/desktops/graphics.nix and resolves VM vs metal at
 # runtime (systemd-detect-virt), setting GFX_DPI / GFX_SCALE / GFX_XSETTINGSD.
 # Dash-safe guard (see the xsecurelock env.conf note below for why). Applied
 # BEFORE any daemon/app starts so every child (and dwm-spawned apps) inherits it.

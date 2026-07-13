@@ -18,7 +18,7 @@
 #   assetsDir        - compatibility asset root; defaults to privateAssetsDir
 #                      when present, otherwise publicAssetsDir.
 #   hostSettings - per-host data attrset (e.g. { dpi = 192; scale = 2; }) consumed
-#                  by modules/home/graphics.nix.
+#                  by modules/home/desktops/graphics.nix.
 #   system       - platform double (default x86_64-linux).
 #   diskDevice   - block device for disko (default the confirmed NVMe); override
 #                  to the VM disk for `nixos-anywhere --vm-test`.

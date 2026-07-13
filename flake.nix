@@ -21,6 +21,13 @@
 
     nixos-hardware.url = "github:NixOS/nixos-hardware";
 
+    # GPU-library wrappers for running Nix-built OpenGL apps on non-NixOS hosts
+    # (nova/tumblesuse). Wired via modules/home/generic-linux.nix.
+    nixgl = {
+      url = "github:nix-community/nixGL";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Public GitHub fork exception: github.com/gubasso/dwm is an intentional
     # public namespace reference, not private host or work data.
     dwm-fork = {
@@ -63,9 +70,12 @@
         common = ./modules/home/common.nix;
         agents = ./modules/home/agents.nix;
         core-cli = ./modules/home/core-cli.nix;
-        desktop = ./modules/home/desktop.nix;
+        desktop-apps = ./modules/home/desktops/apps.nix;
+        desktop-dwm = ./modules/home/desktops/dwm.nix;
+        desktop-kde = ./modules/home/desktops/kde.nix;
         env-shell = ./modules/home/env-shell.nix;
-        graphics = ./modules/home/graphics.nix;
+        generic-linux = ./modules/home/generic-linux.nix;
+        graphics = ./modules/home/desktops/graphics.nix;
         keyring = ./modules/home/keyring.nix;
       };
 
