@@ -7,9 +7,20 @@
   pkgs,
   config,
   publicAssetsDir,
+  hostSettings,
   ...
 }:
 
+let
+  # Per-host theme selection. SoT is `hostSettings` — the same per-host channel as
+  # dpi/scale/desktop. The static kitty/rofi config ships as a shared whole-dir
+  # asset; only the *active theme* varies per host, so it is externalized to a
+  # state file that the config `include`s (this keeps the whole-dir asset unforked).
+  # Pick a vendored theme per host with `hostSettings.kittyTheme` / `rofiTheme` in
+  # the consumer flake.nix; these defaults preserve the prior behaviour.
+  kittyTheme = hostSettings.kittyTheme or "everforest-dark-hard";
+  rofiTheme = hostSettings.rofiTheme or "everforest";
+in
 {
   home.packages =
     # GL-accelerated apps: wrapped so they use the host GPU drivers on non-NixOS
@@ -75,15 +86,14 @@
     ".local/share/brave-unpacked-extensions".source = publicAssetsDir + "/brave-unpacked-extensions";
 
     # rofi's config.rasi includes `@theme "~/.local/state/rofi/active-theme.rasi"`.
-    # Seed the active-theme state file pointing at a vendored theme so a fresh
-    # activation has a working theme. Re-point it to another themes/*.rasi to switch.
-    ".local/state/rofi/active-theme.rasi".source = publicAssetsDir + "/rofi/themes/everforest.rasi";
+    # Seed the active-theme state file with the host's chosen vendored theme
+    # (hostSettings.rofiTheme) so a fresh activation renders correctly.
+    ".local/state/rofi/active-theme.rasi".source = publicAssetsDir + "/rofi/themes/${rofiTheme}.rasi";
 
     # kitty.conf includes `~/.local/state/kitty/active-theme.conf`. Seed it (same
-    # pattern as rofi above) so a fresh activation has a valid theme include and
-    # kitty starts clean. Re-point to another kitty/theme-*.conf to switch.
-    ".local/state/kitty/active-theme.conf".source =
-      publicAssetsDir + "/kitty/theme-everforest-dark-hard.conf";
+    # pattern as rofi) with the host's chosen vendored theme (hostSettings.kittyTheme)
+    # so kitty starts with the intended colours.
+    ".local/state/kitty/active-theme.conf".source = publicAssetsDir + "/kitty/theme-${kittyTheme}.conf";
   };
 
   programs.autorandr.enable = true;
