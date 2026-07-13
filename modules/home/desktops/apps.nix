@@ -12,23 +12,21 @@
 }:
 
 let
-  # Per-host theme selection. SoT is `hostSettings` — the same per-host channel as
-  # dpi/scale/desktop. The static kitty/rofi config ships as a shared whole-dir
-  # asset; only the *active theme* varies per host, so it is externalized to a
-  # state file that the config `include`s (this keeps the whole-dir asset unforked).
-  # Pick a vendored theme per host with `hostSettings.kittyTheme` / `rofiTheme` in
-  # the consumer flake.nix; these defaults preserve the prior behaviour.
-  kittyTheme = hostSettings.kittyTheme or "everforest-dark-hard";
+  # Per-host rofi theme selection. SoT is `hostSettings` — the same per-host
+  # channel as dpi/scale/desktop. rofi's config.rasi `@theme`-includes an active
+  # theme state file, seeded here from a vendored theme. (kitty theming is now
+  # native — see ./kitty.nix, driven by hostSettings.kittyTheme.)
   rofiTheme = hostSettings.rofiTheme or "everforest";
 in
 {
+  imports = [ ./kitty.nix ];
+
   home.packages =
     # GL-accelerated apps: wrapped so they use the host GPU drivers on non-NixOS
     # hosts. `config.lib.nixGL.wrap` is a no-op where nixGL is unconfigured.
     map (p: config.lib.nixGL.wrap p) (
       with pkgs;
       [
-        kitty
         brave
         librewolf
         thunderbird
@@ -89,11 +87,6 @@ in
     # Seed the active-theme state file with the host's chosen vendored theme
     # (hostSettings.rofiTheme) so a fresh activation renders correctly.
     ".local/state/rofi/active-theme.rasi".source = publicAssetsDir + "/rofi/themes/${rofiTheme}.rasi";
-
-    # kitty.conf includes `~/.local/state/kitty/active-theme.conf`. Seed it (same
-    # pattern as rofi) with the host's chosen vendored theme (hostSettings.kittyTheme)
-    # so kitty starts with the intended colours.
-    ".local/state/kitty/active-theme.conf".source = publicAssetsDir + "/kitty/theme-${kittyTheme}.conf";
   };
 
   programs.autorandr.enable = true;
@@ -109,7 +102,6 @@ in
     "rofi/themes/dracula.rasi".source = publicAssetsDir + "/rofi/themes/dracula.rasi";
     "rofi/themes/purple-city.rasi".source = publicAssetsDir + "/rofi/themes/purple-city.rasi";
     "rofi/themes/tokyonight.rasi".source = publicAssetsDir + "/rofi/themes/tokyonight.rasi";
-    "kitty".source = publicAssetsDir + "/kitty";
 
     # PipeWire / WirePlumber user drop-ins (generic audio-quality tuning: 48 kHz
     # clock with dynamic rates, no ALSA suspend, higher-quality Bluetooth
