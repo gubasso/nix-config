@@ -54,6 +54,19 @@ repos:
       - id: check-xml
       - id: destroyed-symlinks
 
+  # --- editorconfig: enforce the shared .editorconfig baseline ---
+  # Markdown is excluded: editorconfig-checker can't parse it — it flags
+  # fenced-code-block interiors and defaults to indent_size=4 even when unset.
+  # Vendored/generated home/assets/** and sops-managed secrets/** are excluded
+  # to match the other hooks' intent.
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker
+    rev: v3.8.0
+    hooks:
+      - id: editorconfig-checker
+        alias: ec
+        args: [-disable-insert-final-newline]
+        exclude: ^(home/assets/|secrets/)|\.md$
+
   # --- nix: format + lint (parse-only; no flake evaluation) ---
   # Tools come from the flake devShell (`nix develop` / direnv). Scoped to real
   # source; vendored/generated trees under home/assets/** are excluded.
@@ -80,7 +93,7 @@ repos:
 
   # --- spelling: typo detection across text/docs ---
   - repo: https://github.com/crate-ci/typos
-    rev: v1.39.2
+    rev: v1
     hooks:
       - id: typos
         exclude: ^(home/assets/|secrets/)
@@ -116,7 +129,7 @@ repos:
         args: ["--severity=warning"]
 
   - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.12.0-2
+    rev: v3.13.1-1
     hooks:
       - id: shfmt
         types_or: [bash, sh, shell]
@@ -124,7 +137,7 @@ repos:
 
   # --- docs: link check (network + slow -> pre-push only) ---
   - repo: https://github.com/lycheeverse/lychee
-    rev: lychee-v0.24.2
+    rev: nightly
     hooks:
       - id: lychee
         stages: [pre-push]

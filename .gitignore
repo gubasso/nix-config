@@ -11,3 +11,7 @@ result-*
 # docs-design: drafts live outside shipped docs — never shipped, either spelling
 /.draft/
 /.drafts/
+
+# --- cog gitignore (nix) ---
+# Nix devshell
+/result

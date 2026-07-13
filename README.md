@@ -21,3 +21,7 @@ repo intentionally does not emit concrete host outputs.
 `nix-secrets -> nix-config` is the only supported private dependency direction.
 This public flake must not import private inputs because `flake.lock` would
 record their URL and revision.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

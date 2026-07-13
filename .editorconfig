@@ -1,0 +1,42 @@
+# EditorConfig — https://editorconfig.org
+# Aligned to this repo's active formatters/linters (nixfmt, shfmt -i 2 -ci,
+# pre-commit housekeeping hooks). See CLAUDE.md and ADR-0011.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Shell scripts — shfmt runs with `-i 2 -ci` (2-space indent).
+[*.{sh,bash,bats}]
+indent_style = space
+indent_size = 2
+
+# Nix — owned by nixfmt (RFC style, 2-space).
+[*.nix]
+indent_style = space
+indent_size = 2
+
+# justfile — recipe bodies use 4-space indentation in this repo.
+[justfile]
+indent_style = space
+indent_size = 4
+
+# Data/config formats.
+[*.{json,yaml,yml,toml}]
+indent_style = space
+indent_size = 2
+
+[Makefile]
+indent_style = tab
+
+# Markdown — hard line breaks (trailing spaces) are significant, matching the
+# pre-commit trailing-whitespace `--markdown-linebreak-ext=md`. Prose width is
+# unbounded; markdown tooling owns this format.
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = off

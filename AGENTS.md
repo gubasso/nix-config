@@ -24,3 +24,17 @@ Development follows the standard fmt/lint/check/test tiers via a `just` runner
 and a flake devShell; the required test tier is `nix flake check` (`just test`).
 See [ADR-0011](docs/decisions/ADR-0011-adopt-standard-dev-tooling.md) and
 [docs/guides/development.md](docs/guides/development.md).
+
+<!-- self-containment -->
+## Self-Containment
+
+Non-negotiable: this framework is self-contained. The knowledge it depends on is
+held in-repo. An external reference is allowed only as a public link or citation
+for further reading — never as a load-bearing dependency on a resource outside
+the repository, and in particular never on a private, local, personalized, or
+mutating repository, path, or tool. If external knowledge is required to
+understand, build, or operate this repo, copy its essential substance in (a doc,
+an ADR, or an inline comment) so the repo stays complete on its own. This is the
+public half of the public/private split: private consumers own their data and
+import this framework, and the framework never reaches into a consumer. See
+[ADR-0013](docs/decisions/ADR-0013-self-containment-principle.md).
