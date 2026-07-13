@@ -1,0 +1,6 @@
+{
+  "containerEnv": {
+    "KITTY_LISTEN_ON": "${localEnv:KITTY_LISTEN_ON}",
+    "KITTY_WINDOW_ID": "${localEnv:KITTY_WINDOW_ID}"
+  }
+}

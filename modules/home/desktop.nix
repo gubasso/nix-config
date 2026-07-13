@@ -144,8 +144,12 @@
       publicAssetsDir + "/dctl/devcontainer/codex/devcontainer.json";
     "dctl/devcontainer/cog/devcontainer.json".source =
       publicAssetsDir + "/dctl/devcontainer/cog/devcontainer.json";
-    "dctl/devcontainer/dotfiles/devcontainer.json".source =
-      publicAssetsDir + "/dctl/devcontainer/dotfiles/devcontainer.json";
+    "dctl/devcontainer/editor/devcontainer.json".source =
+      publicAssetsDir + "/dctl/devcontainer/editor/devcontainer.json";
+    "dctl/devcontainer/gcloud/devcontainer.json".source =
+      publicAssetsDir + "/dctl/devcontainer/gcloud/devcontainer.json";
+    "dctl/devcontainer/kitty/devcontainer.json".source =
+      publicAssetsDir + "/dctl/devcontainer/kitty/devcontainer.json";
     "dctl/devcontainer/gemini/devcontainer.json".source =
       publicAssetsDir + "/dctl/devcontainer/gemini/devcontainer.json";
     "dctl/devcontainer/general.yaml".source = publicAssetsDir + "/dctl/devcontainer/general.yaml";

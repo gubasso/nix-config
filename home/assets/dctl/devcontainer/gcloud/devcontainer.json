@@ -1,0 +1,10 @@
+{
+  "mounts": [
+    {
+      "source": "${localEnv:HOME}/.config/gcloud",
+      "target": "${localEnv:HOME}/.config/gcloud",
+      "type": "bind",
+      "readonly": true
+    }
+  ]
+}

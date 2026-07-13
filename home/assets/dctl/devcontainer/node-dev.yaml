@@ -2,7 +2,9 @@ layers:
   - base
   - nix
   - shell
-  - dotfiles
+  - kitty
+  - editor
+  - gcloud
   - agents
   - claude
   - codex

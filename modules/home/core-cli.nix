@@ -26,9 +26,9 @@
         ss = "sudo systemctl";
       };
       initExtra = ''
-        # GPG_TTY is terminal-specific (see environment.d/60-gpg.conf, which only
-        # carries a placeholder). Set it per interactive shell and refresh the
-        # agent's tty so pinentry can prompt over TTY/SSH sessions.
+        # GPG_TTY is terminal-specific, so it stays out of the session env SoT
+        # (env-shell.nix). Set it per interactive shell and refresh the agent's
+        # tty so pinentry can prompt over TTY/SSH sessions.
         GPG_TTY="$(tty)"
         export GPG_TTY
         gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1 || true
