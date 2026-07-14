@@ -52,6 +52,20 @@ in
     // lib.optionalAttrs (desktop == "dwm" || desktop == "kde") {
       clip = "xclip -selection clipboard";
     };
+    # bebash: load the standalone bebash framework (installed under
+    # ~/.local/lib/bebash by the bebash project) if present. It autoloads the
+    # personal overlay from ~/.local/share/bebash and ~/.config/bebash.
+    #
+    # Sourced from bashrcExtra (which HM renders BEFORE its shellAliases/initExtra
+    # block) so the fully-composed bebash setup (stock < user overlay) is the
+    # base, and the personal Home-Manager config layers on top and WINS on any
+    # conflict. bashrcExtra runs before HM's own interactive guard, and bebash is
+    # interactive-only, so guard it ourselves.
+    bashrcExtra = ''
+      if [[ $- == *i* ]] && [ -r "$HOME/.local/lib/bebash/init.bash" ]; then
+        . "$HOME/.local/lib/bebash/init.bash"
+      fi
+    '';
     initExtra = ''
       # GPG_TTY is terminal-specific, so it stays out of the session env SoT
       # (env-shell.nix). Set it per interactive shell and refresh the agent's
@@ -62,13 +76,6 @@ in
 
       if [ -r "$HOME/.config/bash/hosts/${hostname}.bash" ]; then
         . "$HOME/.config/bash/hosts/${hostname}.bash"
-      fi
-
-      # bebash: load the standalone bebash framework (installed under
-      # ~/.local/lib/bebash by the bebash project) if present. It autoloads
-      # the personal overlay from ~/.local/share/bebash and ~/.config/bebash.
-      if [ -r "$HOME/.local/lib/bebash/init.bash" ]; then
-        . "$HOME/.local/lib/bebash/init.bash"
       fi
 
       if [[ $- == *i* ]]; then
