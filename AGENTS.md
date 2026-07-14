@@ -13,7 +13,11 @@ hosts and identities live in the private consumer repo.
 Critical rules: never introduce personal-identifying strings (concrete
 hostnames, usernames, hardware facts, private repo URLs) into this public repo;
 never commit plaintext secrets or private keys; never add a private flake input;
-keep shared modules parameterized.
+keep shared modules parameterized. Config artifacts are atomic — each file lives
+in exactly one repo, and goes public only if nothing inside it is private; never
+duplicate a public file into the consumer under a private `mkForce` (see the
+Atomic Artifact Principle,
+[ADR-0015](docs/decisions/ADR-0015-atomic-artifact-principle.md)).
 
 These rules are backed by pre-commit hooks (fast hygiene + secret scanning) and
 pre-push hooks (thorough secret-history and link checks), not by any committed

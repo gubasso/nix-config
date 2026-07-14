@@ -1,0 +1,9 @@
+# Intentional tokens that are not typos. Prefer this dictionary over excluding
+# whole trees from the typos pre-commit hook — so real prose in those files stays
+# spell-checked. If one artifact starts flooding this list, fall back to an
+# exclude for that path in .pre-commit-config.yaml (typos hook).
+[default.extend-words]
+noice = "noice"          # nvim noice.nvim plugin
+nd = "nd"                # <leader>nd keymap token
+mis = "mis"              # "mis-owned" (hyphenated prefix)
+unparseable = "unparseable"

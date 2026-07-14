@@ -28,6 +28,18 @@ map("n", "<leader>Q", "<cmd>q!<CR>", { desc = "Quit without saving" })
 -- Buffer navigation
 map("n", "<leader><tab>", "<cmd>b#<CR>", { desc = "Switch to alternate buffer" })
 
+-- Tab pages (gt/gT next/prev are native)
+map("n", "<leader>Tn", "<cmd>tabnew<CR>", { desc = "Tab: new" })
+map("n", "<leader>Tc", "<cmd>tabclose<CR>", { desc = "Tab: close" })
+map("n", "<leader>To", "<cmd>tabonly<CR>", { desc = "Tab: close others" })
+-- Toggle to the last-used tab (browser-style Ctrl+Tab); native g<Tab> equivalent
+map("n", "gl", function()
+  local last = vim.fn.tabpagenr("#")
+  if last ~= 0 then
+    vim.cmd(last .. "tabnext")
+  end
+end, { desc = "Tab: last-used (toggle)" })
+
 -- Search
 map("n", "<c-c>", ":set hlsearch!<cr>", { desc = "Toggle hlsearch" })
 

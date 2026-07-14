@@ -98,10 +98,12 @@ repos:
     rev: v1.39.2
     hooks:
       - id: typos
-        # Lint hand-written Nix; skip vendored dotfiles under the co-located app
-        # and system-session trees (they hold plugin names / config tokens typos
-        # would wrongly "fix", e.g. nvim plugin names).
-        exclude: (?:^home/apps/.*(?<!\.nix)$)|(?:^modules/system/session/.*(?<!\.nix)$)|^secrets/
+        # Spell-check everything, including vendored dotfiles under home/apps/**
+        # and modules/system/session/**. Intentional tokens (nvim plugin names,
+        # keymap tokens, config keys) are allowlisted in typos.toml instead of
+        # excluding whole trees, so real prose in those files stays checked. Only
+        # secrets/** is skipped (sops ciphertext — high-entropy, nothing to spell).
+        exclude: ^secrets/
 
   # --- security: secret / private-key detection (generic; no denylist) ---
   # Lightweight private-key detection on every commit.

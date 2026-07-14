@@ -29,6 +29,7 @@ return {
       { "<leader>z", group = "Zen" },
       { "<leader>g", group = "Git" },
       { "<leader>t", group = "Todo" },
+      { "<leader>T", group = "Tab" },
     })
 
     vim.keymap.set("n", "<leader>?", function()
