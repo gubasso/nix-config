@@ -11,4 +11,3 @@ layers:
   - cog
   - projects
   - pre-commit
-  - bebash

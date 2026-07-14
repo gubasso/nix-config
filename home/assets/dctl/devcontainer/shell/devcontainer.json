@@ -24,6 +24,18 @@
       "source": "${localEnv:HOME}/.inputrc",
       "target": "${localEnv:HOME}/.inputrc",
       "type": "bind"
+    },
+    {
+      "source": "${localEnv:HOME}/.config/bebash",
+      "target": "${localEnv:HOME}/.config/bebash",
+      "type": "bind",
+      "readonly": true
+    },
+    {
+      "source": "${localEnv:HOME}/.local/share/bebash",
+      "target": "${localEnv:HOME}/.local/share/bebash",
+      "type": "bind",
+      "readonly": true
     }
   ]
 }

@@ -119,9 +119,10 @@ in
       publicAssetsDir + "/dctl/devcontainer/agents/seccomp-bwrap.json";
     "dctl/devcontainer/base/devcontainer.json".source =
       publicAssetsDir + "/dctl/devcontainer/base/devcontainer.json";
+    # bebash.yaml stays as an env manifest; the discrete bebash LAYER was removed
+    # (bebash config+add-ons are now mounted universally by the shell layer —
+    # ADR-0011), so there is no bebash/devcontainer.json to wire here.
     "dctl/devcontainer/bebash.yaml".source = publicAssetsDir + "/dctl/devcontainer/bebash.yaml";
-    "dctl/devcontainer/bebash/devcontainer.json".source =
-      publicAssetsDir + "/dctl/devcontainer/bebash/devcontainer.json";
     "dctl/devcontainer/claude/devcontainer.json".source =
       publicAssetsDir + "/dctl/devcontainer/claude/devcontainer.json";
     "dctl/devcontainer/codex/devcontainer.json".source =
