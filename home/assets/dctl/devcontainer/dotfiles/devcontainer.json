@@ -1,0 +1,10 @@
+{
+  "name": "${localWorkspaceFolderBasename}-sandbox",
+  "mounts": [
+    {
+      "source": "${localEnv:HOME}/.dotfiles",
+      "target": "${localEnv:HOME}/.dotfiles",
+      "type": "bind"
+    }
+  ]
+}

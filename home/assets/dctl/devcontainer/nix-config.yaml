@@ -1,0 +1,13 @@
+layers:
+  - base
+  - nix
+  - shell
+  - kitty
+  - editor
+  - gcloud
+  - agents
+  - claude
+  - codex
+  - cog
+  - projects
+  - pre-commit
