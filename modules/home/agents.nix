@@ -4,37 +4,33 @@
 # session directories, lock files), which the wrappers manage under HOME on
 # their own. Work-specific and personal layers (the `suse` claude profile, the
 # codex trusted-projects list) are overlaid by the private consumer.
-{ publicAssetsDir, ... }:
+#
+# Each config tree is deployed as a SINGLE whole-directory symlink (via
+# pkgs.mkRealConfigDir, which copies real files into one store path) instead
+# of the usual per-file store symlinks. A dctl devcontainer bind-mounts these
+# dirs but has its own /nix: Docker dereferences a whole-dir symlink source at
+# mount time (so it resolves in the container), whereas per-file symlinks inside
+# a mounted real dir dangle against the foreign /nix and the wrapper falls back
+# to stock mode — losing claude-session's base layer (bypassPermissions, deny
+# rules, hooks, statusLine). See overlays/default.nix for the full rationale.
+#
+# These are the portable BASE trees only (mkDefault). The private consumer
+# re-materializes the tree with its own overlay via mkForce where it applies —
+# codex trusted-projects on every private host, the `suse` claude profile on the
+# SUSE work host — so per-host scope is preserved (no work profile leaks onto
+# personal hosts).
+{
+  lib,
+  pkgs,
+  publicAssetsDir,
+  ...
+}:
 
 {
   xdg.configFile = {
-    # claude-session — portable base layer.
-    "claude-session/config.env".source = publicAssetsDir + "/claude-session/config.env";
-    "claude-session/profiles/default.yaml".source =
-      publicAssetsDir + "/claude-session/profiles/default.yaml";
-    "claude-session/settings/base.json".source = publicAssetsDir + "/claude-session/settings/base.json";
-
-    # codex-session — portable config recipe, layers, and profile tiers.
-    "codex-session/config.toml".source = publicAssetsDir + "/codex-session/config.toml";
-    "codex-session/config-recipes/default.yaml".source =
-      publicAssetsDir + "/codex-session/config-recipes/default.yaml";
-    "codex-session/configs/base.toml".source = publicAssetsDir + "/codex-session/configs/base.toml";
-    # Portable empty `projects` layer. The `default` recipe names it, so it must
-    # exist or config-recipe composition fails; the private consumer overrides it
-    # with the personal trusted-projects list via lib.mkForce.
-    "codex-session/configs/projects.toml".source =
-      publicAssetsDir + "/codex-session/configs/projects.toml";
-    "codex-session/configs/plugins.toml".source =
-      publicAssetsDir + "/codex-session/configs/plugins.toml";
-    "codex-session/profiles/deep.config.toml".source =
-      publicAssetsDir + "/codex-session/profiles/deep.config.toml";
-    "codex-session/profiles/low.config.toml".source =
-      publicAssetsDir + "/codex-session/profiles/low.config.toml";
-    "codex-session/profiles/medium.config.toml".source =
-      publicAssetsDir + "/codex-session/profiles/medium.config.toml";
-    "codex-session/profiles/ping.config.toml".source =
-      publicAssetsDir + "/codex-session/profiles/ping.config.toml";
-    "codex-session/profiles/quick.config.toml".source =
-      publicAssetsDir + "/codex-session/profiles/quick.config.toml";
+    "claude-session".source = lib.mkDefault (
+      pkgs.mkRealConfigDir "claude-session" publicAssetsDir null
+    );
+    "codex-session".source = lib.mkDefault (pkgs.mkRealConfigDir "codex-session" publicAssetsDir null);
   };
 }
