@@ -9,7 +9,7 @@
 #   host's GL drivers instead of Nix's. onyx and quartz are both Intel-primary
 #   PRIME laptops, so the default `mesa` wrapper drives the desktop GPU; the Nvidia
 #   dGPU is an offload path (would need an nvidia* wrapper + `--impure`). Apps opt
-#   in via `config.lib.nixGL.wrap` in desktops/apps.nix (identity where unset).
+#   in via `config.lib.nixGL.wrap` in co-located app modules (identity where unset).
 {
   inputs,
   lib,

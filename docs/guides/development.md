@@ -36,7 +36,7 @@ formatting gate). Every change must pass it before merging. Full builds are a
 deliberate human step, never a hook.
 
 The nix lint/format tools are parse-only (they never evaluate the flake). They
-are scoped to real source; vendored/generated trees under `home/assets/**` are
+are scoped to real source; generated trees are
 excluded (via `statix.toml` and the hook `exclude` patterns).
 
 ## Running the hooks manually

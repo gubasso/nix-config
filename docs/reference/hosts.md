@@ -10,5 +10,5 @@ Private consumers define their own:
 - `nixosConfigurations.<host>` and `homeConfigurations."<user>@<host>"`
 
 Use `lib.mkHost` and `lib.mkHomeHost` from this framework with
-`publicAssetsDir` pointing at this repo's `home/assets` and `privateAssetsDir`
+`publicAppsDir` pointing at this repo's `home/apps` and `privateAppsDir`
 pointing at the consumer's private asset tree.

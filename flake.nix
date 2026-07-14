@@ -61,21 +61,16 @@
         system-network = ./modules/system/network.nix;
         system-power = ./modules/system/power.nix;
         system-secrets = ./modules/system/secrets.nix;
-        system-session = ./modules/system/session.nix;
+        system-session = ./modules/system/session;
         system-users = ./modules/system/users.nix;
         vm = ./modules/vm.nix;
       };
 
       homeModules = {
         common = ./modules/home/common.nix;
-        agents = ./modules/home/agents.nix;
-        core-cli = ./modules/home/core-cli.nix;
-        desktop-apps = ./modules/home/desktops/apps.nix;
-        desktop-dwm = ./modules/home/desktops/dwm.nix;
-        desktop-kde = ./modules/home/desktops/kde.nix;
+        apps = ./home/apps;
         env-shell = ./modules/home/env-shell.nix;
         generic-linux = ./modules/home/generic-linux.nix;
-        graphics = ./modules/home/desktops/graphics.nix;
         keyring = ./modules/home/keyring.nix;
       };
 

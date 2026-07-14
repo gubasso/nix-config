@@ -57,19 +57,21 @@ repos:
   # --- editorconfig: enforce the shared .editorconfig baseline ---
   # Markdown is excluded: editorconfig-checker can't parse it — it flags
   # fenced-code-block interiors and defaults to indent_size=4 even when unset.
-  # Vendored/generated home/assets/** and sops-managed secrets/** are excluded
-  # to match the other hooks' intent.
+  # Co-located apps hold hand-written Nix modules (linted) alongside vendored
+  # dotfiles/binaries (skipped): the `(?<!\.nix)$` branches exclude every non-Nix
+  # file under home/apps/** and the moved system-session assets, so only the
+  # `default.nix` modules are checked. sops-managed secrets/** are excluded too.
   - repo: https://github.com/editorconfig-checker/editorconfig-checker
     rev: v3.8.0
     hooks:
       - id: editorconfig-checker
         alias: ec
         args: [-disable-insert-final-newline]
-        exclude: ^(home/assets/|secrets/)|\.md$
+        exclude: (?:^home/apps/.*(?<!\.nix)$)|(?:^modules/system/session/.*(?<!\.nix)$)|^secrets/|\.md$
 
   # --- nix: format + lint (parse-only; no flake evaluation) ---
   # Tools come from the flake devShell (`nix develop` / direnv). Scoped to real
-  # source; vendored/generated trees under home/assets/** are excluded.
+  # source; the only vendored Nix is the dctl container global-flake, excluded.
   - repo: local
     hooks:
       - id: nixfmt
@@ -77,7 +79,7 @@ repos:
         entry: nixfmt
         language: system
         types: [nix]
-        exclude: ^home/assets/
+        exclude: ^home/apps/dctl/images/
       - id: statix
         name: statix (nix anti-patterns)
         entry: statix check
@@ -89,14 +91,17 @@ repos:
         entry: deadnix --fail
         language: system
         types: [nix]
-        exclude: ^home/assets/
+        exclude: ^home/apps/dctl/images/
 
   # --- spelling: typo detection across text/docs ---
   - repo: https://github.com/crate-ci/typos
     rev: v1.39.2
     hooks:
       - id: typos
-        exclude: ^(home/assets/|secrets/)
+        # Lint hand-written Nix; skip vendored dotfiles under the co-located app
+        # and system-session trees (they hold plugin names / config tokens typos
+        # would wrongly "fix", e.g. nvim plugin names).
+        exclude: (?:^home/apps/.*(?<!\.nix)$)|(?:^modules/system/session/.*(?<!\.nix)$)|^secrets/
 
   # --- security: secret / private-key detection (generic; no denylist) ---
   # Lightweight private-key detection on every commit.

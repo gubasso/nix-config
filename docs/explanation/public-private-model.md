@@ -10,7 +10,7 @@ Two repositories, one dependency edge:
   - lib.mkHost / lib.mkDisko                               - nixosConfigurations.<host>
   - nixosModules.* / homeModules.*                         - hosts/<host>/*
   - overlays.default                                       - modules/hardware/* (real bus IDs)
-  - packages.*                                             - home/assets/** (dotfiles, location)
+  - packages.*                                             - home/apps/** (private overlays)
   (no nixosConfigurations)                                 - .sops.yaml + secrets/** (encrypted)
 ```
 The edge points **one way**: the consumer depends on the framework; the framework
@@ -34,25 +34,21 @@ See [ADR-0001](../decisions/ADR-0001-public-private-split.md).
 The naive split makes each consumer host re-import every shared module via
 `inputs.nix-config.nixosModules.*`. Instead, `mkHost` **injects** the shared set
 itself and threads everything a host needs (`inputs`, `mkDisko`, `hostSettings`,
-`publicAssetsDir`, `privateAssetsDir`) through `specialArgs`. A consumer host
+`publicAppsDir`, `privateAppsDir`) through `specialArgs`. A consumer host
 module ends up carrying only what is genuinely per-machine: its hardware profile,
 disk parameters, user, and
 `stateVersion`. No consumer module ever writes `inputs.nix-config`.
 
 See [ADR-0002](../decisions/ADR-0002-mkhost-parameterization.md).
 
-## Why assets are two paths, not files
+## Why apps are co-located
 
-Home Manager modules wire dotfiles. Rather than ship those files, the modules
-read from `publicAssetsDir` — public-safe, generic assets that live in this
-framework and default to its own `home/assets/` — and, for anything
-host-specific or personal (a physical location in `gammastep/config.ini`, a
-per-host `bash/hosts/<hostname>.bash`, work overlays), from an optional
-`privateAssetsDir` supplied only by the private consumer. The compatibility
-`assetsDir` argument remains as a derived legacy value (it points at
-`privateAssetsDir` when set, otherwise `publicAssetsDir`) and no module consumes
-it directly. The public modules keep their full structure and ship zero personal
-files; the private consumer owns every host-specific overlay.
+Home Manager app modules and their dotfiles live together under
+`home/apps/<app>/`. Public apps source their own files with relative paths. A
+private consumer can provide `privateAppsDir` for co-located overrides and uses
+`publicAppsDir` only for explicit public/private config-dir merges such as
+codex-session. The public modules keep their full structure and ship zero
+personal files; the private consumer owns every host-specific overlay.
 
 See [ADR-0003](../decisions/ADR-0003-assets-live-in-consumer.md), superseded for
 the public/private asset split by

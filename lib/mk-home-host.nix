@@ -3,9 +3,8 @@
   hostname,
   username,
   homeModule,
-  publicAssetsDir ? ../home/assets,
-  privateAssetsDir ? null,
-  assetsDir ? if privateAssetsDir != null then privateAssetsDir else publicAssetsDir,
+  publicAppsDir ? ../home/apps,
+  privateAppsDir ? null,
   hostSettings ? { },
   system ? "x86_64-linux",
   extraModules ? [ ],
@@ -27,9 +26,8 @@ inputs.home-manager.lib.homeManagerConfiguration {
       hostname
       username
       hostSettings
-      publicAssetsDir
-      privateAssetsDir
-      assetsDir
+      publicAppsDir
+      privateAppsDir
       ;
   };
 

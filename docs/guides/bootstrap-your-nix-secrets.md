@@ -16,8 +16,8 @@ secrets; this framework holds everything shared.
       username = "me";
       hostModule = ./hosts/myhost;          # default.nix in that dir
       homeModule = ./hosts/myhost/home.nix;
-      publicAssetsDir = ./home/assets;      # your Home Manager dotfile tree
-      # privateAssetsDir = ./home/private;  # optional per-host overlay tree
+      publicAppsDir = nix-config + "/home/apps";
+      privateAppsDir = ./home/apps;         # your Home Manager app overlays
       hostSettings = { dpi = 192; scale = 2; };
     };
   };
@@ -75,7 +75,7 @@ host-only extras:
 ```
 ## 3. Assets
 
-Put your dotfiles under `home/assets/` mirroring the paths the home modules
+Put your dotfiles under `home/apps/<app>/` with the owning app module
 expect: `bash/hosts/<hostname>.bash`, `starship/`, `nvim/`, `yazi/`, `rofi/`,
 `dunst/`, `picom/`, `gammastep/config.ini`, `browser/`, `environment.d/`,
 `kwallet/`, `bin/`, `xsecurelock/`, `profile`. See

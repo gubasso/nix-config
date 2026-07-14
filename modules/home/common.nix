@@ -9,26 +9,17 @@
 # session assets. Add a new WM with one module + one `lib.optional` line.
 {
   username,
-  hostSettings,
-  lib,
   ...
 }:
 
-let
-  desktop = hostSettings.desktop or "none";
-in
 {
   imports = [
     ./env-shell.nix
     ./nix.nix
-    ./core-cli.nix
     ./keyring.nix
-    ./agents.nix
     ./generic-linux.nix
-    ./desktops/apps.nix
-  ]
-  ++ lib.optional (desktop == "dwm") ./desktops/dwm.nix
-  ++ lib.optional (desktop == "kde") ./desktops/kde.nix;
+    ../../home/apps
+  ];
 
   home = {
     inherit username;

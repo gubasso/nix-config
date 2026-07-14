@@ -13,12 +13,10 @@
 #   homeModule   - path/module for this host's Home Manager extras
 #                  (hosts/<name>/home.nix). The shared home base is injected, so
 #                  this only carries host-only home config.
-#   publicAssetsDir  - path to public-safe Home Manager assets.
-#   privateAssetsDir - optional path to private per-host/private assets.
-#   assetsDir        - compatibility asset root; defaults to privateAssetsDir
-#                      when present, otherwise publicAssetsDir.
+#   publicAppsDir  - path to public co-located Home Manager app modules/assets.
+#   privateAppsDir - optional path to private co-located app overlays.
 #   hostSettings - per-host data attrset (e.g. { dpi = 192; scale = 2; }) consumed
-#                  by modules/home/desktops/graphics.nix.
+#                  by co-located home app modules.
 #   system       - platform double (default x86_64-linux).
 #   diskDevice   - block device for disko (default the confirmed NVMe); override
 #                  to the VM disk for `nixos-anywhere --vm-test`.
@@ -33,9 +31,8 @@
   username,
   hostModule,
   homeModule,
-  publicAssetsDir ? ../home/assets,
-  privateAssetsDir ? null,
-  assetsDir ? if privateAssetsDir != null then privateAssetsDir else publicAssetsDir,
+  publicAppsDir ? ../home/apps,
+  privateAppsDir ? null,
   hostSettings ? { },
   system ? "x86_64-linux",
   diskDevice ? "/dev/nvme0n1",
@@ -55,9 +52,8 @@ inputs.nixpkgs.lib.nixosSystem {
       diskDevice
       luksPasswordFile
       hostSettings
-      publicAssetsDir
-      privateAssetsDir
-      assetsDir
+      publicAppsDir
+      privateAppsDir
       ;
     # Shared disko template exposed as a function so a host's
     # hosts/<name>/disko.nix stays a thin call with no cross-flake import.
@@ -76,7 +72,7 @@ inputs.nixpkgs.lib.nixosSystem {
     ../modules/system/power.nix
     ../modules/system/audio.nix
     ../modules/system/network.nix
-    ../modules/system/session.nix
+    ../modules/system/session
     ../modules/vm.nix
 
     inputs.disko.nixosModules.disko
@@ -95,9 +91,8 @@ inputs.nixpkgs.lib.nixosSystem {
             hostname
             username
             hostSettings
-            publicAssetsDir
-            privateAssetsDir
-            assetsDir
+            publicAppsDir
+            privateAppsDir
             ;
         };
         # Shared Home Manager base + the host-only extras.

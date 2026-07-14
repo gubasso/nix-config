@@ -22,8 +22,7 @@ here. Private consumers own that data and import this framework.
 - Do not add private repositories as flake inputs. Public `flake.lock` must stay
   free of private URLs, branches, and revisions.
 - Keep shared modules reusable through explicit arguments such as
-  `publicAssetsDir`, `privateAssetsDir`, `hostname`, `username`, and
-  `hostSettings`.
+  `publicAppsDir`, `privateAppsDir`, `hostname`, `username`, and `hostSettings`.
 - Flakes only see git-tracked files. Humans must track new files before Nix
   validation can fully see them.
 
@@ -31,7 +30,7 @@ here. Private consumers own that data and import this framework.
 
 - `flake.nix` exports factories, modules, overlays, packages, and a formatter.
 - `lib/` contains `mk-host.nix`, `mk-home-host.nix`, and `mk-disko.nix`.
-- `home/assets/` contains only public-safe generic assets.
+- `home/apps/<app>/` contains public-safe app modules and their co-located assets.
 - `modules/system/` and `modules/home/` contain shared modules.
 - `docs/` contains Diataxis documentation and ADRs.
 
