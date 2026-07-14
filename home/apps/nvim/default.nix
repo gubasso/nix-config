@@ -20,7 +20,7 @@
     pkgs.bun
   ];
 
-  programs.bash.shellAliases.n = "nvim";
+  programs.bash.shellAliases.n = "nvim .";
   # Public base config tree. A private consumer overlays only the files that
   # carry private data (host profile, host-keyed colorscheme, personal spell
   # words) via mkRealConfigDir, so no config file is duplicated across repos
