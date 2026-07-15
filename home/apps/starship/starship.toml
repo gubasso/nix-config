@@ -60,12 +60,12 @@ style = "bright-black"
 format = "[$duration]($style) "
 style = "yellow"
 
-# Nix shell indicator. Keyed on $IN_NIX_SHELL, which both `nix develop` and
-# nix-direnv `use flake` set. The old `heuristic` (scan PATH for /nix/store)
-# fired everywhere, since /nix/store is always on PATH on Nix/HM hosts.
+# Nix shell indicator. The built-in module keys off $IN_NIX_SHELL (set to
+# impure/pure by both `nix develop` and nix-direnv `use flake`) whenever
+# heuristic is off. The old `heuristic = true` scanned PATH for /nix/store, so
+# it fired everywhere since /nix/store is always on PATH on Nix/HM hosts.
 [nix_shell]
 heuristic = false
-detect_env_vars = ["IN_NIX_SHELL"]
 symbol = "❄ "
 style = "blue"
 format = "[$symbol]($style)"
