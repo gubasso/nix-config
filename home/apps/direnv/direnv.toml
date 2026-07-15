@@ -1,12 +1,22 @@
 # ~/.config/direnv/direnv.toml
 #
+# Single source of truth for direnv config. Deployed to the host via home-manager
+# (xdg.configFile) and mounted read-only into dctl containers (base devcontainer
+# layer) — the same host-is-SoT pattern as ~/.config/git. No baked duplicate.
+#
 # Trust project .envrc files non-interactively: any .envrc whose absolute path
 # starts with one of these prefixes loads WITHOUT `direnv allow`. Trailing slash =
-# hard directory boundary.
-# log_format = "" disables direnv's own status logging (a value like "-" makes Go
-# emit %!(MISSING) garbage on every load).
+# hard directory boundary. `/workspaces/` is the dctl container project-mount root
+# (bind-mounted projects auto-activate); it matches nothing on the host, so it is
+# inert there and safe to carry in the shared file.
+# Silent on success, verbose on errors: log_format = "" disables direnv's own
+# status logging — loading / using flake / nix-direnv lines (a value like "-"
+# makes Go emit %!(MISSING) garbage on every load). hide_env_diff = true also
+# drops the `export +VAR ~VAR` diff wall. Errors use a separate channel
+# (log_error) and are unaffected, so failures still print.
 [global]
 log_format = ""
+hide_env_diff = true
 
 [whitelist]
-prefix = ["~/Projects/"]
+prefix = ["/workspaces/", "~/Projects/"]

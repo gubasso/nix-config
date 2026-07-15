@@ -177,6 +177,16 @@
       "readonly": true
     },
     {
+      // Host is the SoT for direnv config (direnv.toml + direnvrc), deployed by
+      // home-manager. Mounted read-only like git config instead of baked into the
+      // image, so there is a single source of truth. direnv writes its allow-hashes
+      // under ~/.local/share/direnv, never here, so readonly is safe.
+      "source": "${localEnv:HOME}/.config/direnv",
+      "target": "${localEnv:HOME}/.config/direnv",
+      "type": "bind",
+      "readonly": true
+    },
+    {
       "source": "${localEnv:HOME}/.config/gh",
       "target": "${localEnv:HOME}/.config/gh",
       "type": "bind"

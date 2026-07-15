@@ -123,14 +123,15 @@ RUN install -d -m 0700 -o $USERNAME -g $USERNAME /home/$USERNAME/.ssh
 #   profile, generations, and the ~/.local/state/nix/profile convenience symlink).
 #   Pre-owned so the fresh named volume inherits non-root ownership on first mount
 #   — same rule as /nix below; a root-first-write is unrecoverable (zypper-only sudo).
-# /home/$USERNAME/.config/direnv
-#   Holds the baked direnv.toml + direnvrc (see COPY below).
+#
+# direnv config (~/.config/direnv) is NOT pre-created here: it is a read-only
+# bind mount from the host (base devcontainer layer, host-is-SoT), which overlays
+# the target — same as ~/.config/git, which also needs no pre-create.
 #
 RUN install -d -m 0755 -o $USERNAME -g $USERNAME \
         /home/$USERNAME/.local/lib \
         /home/$USERNAME/.local/state/nix \
-        /home/$USERNAME/.config/osc \
-        /home/$USERNAME/.config/direnv
+        /home/$USERNAME/.config/osc
 
 # Pre-create the cargo cache mount targets so the rust layer's named volumes
 # inherit non-root ownership on first mount.
@@ -196,10 +197,10 @@ RUN test -f /opt/dctl/global-flake/flake.lock \
          echo "       images/agents/global-flake/ on a host with Nix, then rebuild."; \
          exit 1; }
 
-# direnv config: whitelist (non-interactive trust of /workspaces + ~/Projects)
-# and nix-direnv wiring for `use flake`.
-COPY --chown=$USER_UID:$USER_GID direnv.toml /home/$USERNAME/.config/direnv/direnv.toml
-COPY --chown=$USER_UID:$USER_GID direnvrc /home/$USERNAME/.config/direnv/direnvrc
+# direnv config (direnv.toml + direnvrc) is NOT baked here — it is bind-mounted
+# read-only from the host's ~/.config/direnv by the base devcontainer layer, so
+# there is a single source of truth (home/apps/direnv/). The mount is present from
+# container start, before nix-bootstrap, so early auto-activation still works.
 
 # Default editor (neovim comes from the Nix global toolset)
 ENV EDITOR=nvim
