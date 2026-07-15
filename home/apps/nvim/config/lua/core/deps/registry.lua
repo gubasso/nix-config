@@ -8,7 +8,7 @@ M.executables = {
   { name = "git", required = true, hint = "pacman -S git", pacman = "git" },
   { name = "hg", required = false, hint = "pacman -S mercurial", pacman = "mercurial" },
 
-  -- Node ecosystem (npm optional - bun can substitute)
+  -- Node ecosystem (required by mason's node-based tools)
   { name = "node", required = true, hint = "pacman -S nodejs", pacman = "nodejs" },
   { name = "npm", required = false, hint = "pacman -S npm", pacman = "npm" },
 
@@ -49,8 +49,8 @@ M.provider_hosts = {
   {
     name = "neovim-node-host",
     check_cmd = "command -v neovim-node-host >/dev/null 2>&1",
-    hint = "bun add -g neovim",
-    install_cmd = "bun add -g neovim",
+    hint = "npm install -g neovim",
+    install_cmd = "npm install -g neovim",
   },
   {
     name = "neovim-ruby-host",

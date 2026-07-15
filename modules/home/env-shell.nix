@@ -23,8 +23,6 @@ let
   # standalone hosts, to the systemd.user.sessionVariables PATH line. The native
   # HM option does not derive PATH from home.sessionPath, so it is set here.
   sessionPathPrepends = [
-    "$HOME/.cache/.bun/bin"
-    "$HOME/.bun/bin"
     "$HOME/.local/bin"
     "$HOME/.local/share/bebash/commands"
     "$HOME/.cargo/bin"

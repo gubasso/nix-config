@@ -11,13 +11,19 @@
     withPython3 = false;
   };
 
-  # JS/Node runtimes from nixpkgs. npm ships stock defaults -- no custom
-  # ~/.npmrc, no user-global prefix; the default prefix is the read-only store,
-  # so global CLIs come as nix derivations, never `npm i -g` / `bun add -g`.
-  # bun is also required by the nvim yt_get_reference usercmd.
+  # Node runtime from nixpkgs, scoped to nvim (the only consumer in this config):
+  # mason installs several node-based tools (bash/vim-language-server, doctoc,
+  # prettier). npm ships stock defaults -- no custom ~/.npmrc, no user-global
+  # prefix; the default prefix is the read-only store, so global CLIs come as nix
+  # derivations, never `npm i -g`.
+  #
+  # tree-sitter CLI + a C compiler are required by nvim-treesitter's `main` branch
+  # to compile parsers at install/update. Upstream is explicit: install the CLI
+  # via a package manager, NOT npm -- so it comes from nix here, not mason.
   home.packages = [
     pkgs.nodejs
-    pkgs.bun
+    pkgs.tree-sitter
+    pkgs.gcc
   ];
 
   programs.bash.shellAliases.n = "nvim .";

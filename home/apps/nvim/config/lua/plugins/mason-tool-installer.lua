@@ -15,7 +15,8 @@ return {
         "rust-analyzer",
         "doctoc",
         "prettier",
-        "tree-sitter-cli",
+        -- tree-sitter CLI comes from nix (home/apps/nvim/default.nix), per
+        -- nvim-treesitter `main` upstream guidance to NOT install it via npm.
         "texlab",
         "flake8",
       },
