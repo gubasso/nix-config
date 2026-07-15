@@ -9,14 +9,25 @@
 # hard directory boundary. `/workspaces/` is the dctl container project-mount root
 # (bind-mounted projects auto-activate); it matches nothing on the host, so it is
 # inert there and safe to carry in the shared file.
-# Silent on success, verbose on errors: log_format = "" disables direnv's own
-# status logging — loading / using flake / nix-direnv lines (a value like "-"
-# makes Go emit %!(MISSING) garbage on every load). hide_env_diff = true also
-# drops the `export +VAR ~VAR` diff wall. Errors use a separate channel
-# (log_error) and are unaffected, so failures still print.
+# Silent on success, fully verbose on any error. The silencing is the PAIR below,
+# not either line alone (verified on direnv 2.37.1):
+#   - log_format = ""  is a no-op: direnv treats an empty format as *unset* and
+#     falls back to its default `direnv: %s`, so the loading / using flake /
+#     nix-direnv status lines keep printing.
+#   - log_format = "-" alone makes Go emit `%!(MISSING)` garbage on every load.
+#   - log_filter = "^$" is a whitelist regex matching only blank lines, so it
+#     drops every formatted status line — the `-` garbage included. Together they
+#     give total silence on the happy path (the `export +VAR` diff wall too, so
+#     the old hide_env_diff is now redundant and dropped).
+# Errors are untouched: log_error (its own DIRENV_LOG_ERROR_FORMAT channel), raw
+# .envrc stderr passthrough, and nix eval/build failures all print in full.
+# This is exactly what home-manager's `programs.direnv.silent = true` generates for
+# direnv >= 2.36 (modules/programs/direnv.nix); hand-written here because `silent`
+# writes to programs.direnv.config, colliding with the xdg.configFile source that
+# makes this file the single SoT bind-mounted into containers.
 [global]
-log_format = ""
-hide_env_diff = true
+log_format = "-"
+log_filter = "^$"
 
 [whitelist]
 prefix = ["/workspaces/", "~/Projects/"]
