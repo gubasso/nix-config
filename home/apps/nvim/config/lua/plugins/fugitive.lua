@@ -567,9 +567,13 @@ return {
         if vim.tbl_isempty(vim.fs.find(".git", { upward = true, path = vim.fn.getcwd() })) then
           return
         end
-        -- Defer so startup settles and fugitive lazy-loads cleanly.
+        -- Defer so startup settles and fugitive lazy-loads cleanly. 0Git opens
+        -- the status in the current (full) window -- matching the `gs` keymap
+        -- (open_status(false)); bare :Git would open a horizontal split. The
+        -- helper isn't reused here: at VimEnter fugitive isn't loaded, so its
+        -- FugitiveGitDir() lookup would error, and no status buffer exists yet.
         vim.schedule(function()
-          vim.cmd.Git()
+          vim.cmd("0Git")
         end)
       end,
     })
