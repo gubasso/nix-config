@@ -528,6 +528,52 @@ return {
     "GitReviewReset",
     "GitFileLog",
   },
+  -- Auto-open the :Git status buffer as the entrypoint when nvim is launched
+  -- bare (no args) inside a git repo. In `init` (not `config`) so it registers
+  -- at startup even though the plugin is lazy; vim.cmd.Git() then triggers the
+  -- `cmd` lazy-load above.
+  init = function()
+    local group = vim.api.nvim_create_augroup("fugitive_startup", { clear = true })
+
+    -- StdinReadPre fires only when data is piped in (`cmd | nvim`, `nvim -`);
+    -- mark it so the VimEnter handler bails. kitty-scrollback does NOT use stdin.
+    vim.api.nvim_create_autocmd("StdinReadPre", {
+      group = group,
+      callback = function()
+        vim.g.started_with_stdin = true
+      end,
+    })
+
+    vim.api.nvim_create_autocmd("VimEnter", {
+      group = group,
+      desc = "Open fugitive :Git status on bare launch in a git repo",
+      callback = function()
+        -- 1. Exclude kitty-scrollback (launches nvim bare, argc 0). Decisive
+        --    guard; argc/stdin do NOT catch it (env set by the kitten).
+        if vim.env.KITTY_SCROLLBACK_NVIM then
+          return
+        end
+        -- 2. Any file/dir arg (`nvim <file>`, `nvim .`, git's COMMIT_EDITMSG,
+        --    rebase-todo) -> leave alone. `nvim .` stays on oil.
+        if vim.fn.argc() > 0 then
+          return
+        end
+        -- 3. Piped stdin (`cmd | nvim`).
+        if vim.g.started_with_stdin then
+          return
+        end
+        -- 4. Must be inside a git repo. vim.fs.find matches BOTH a `.git` dir and
+        --    a `.git` file (worktrees/submodules), unlike finddir(); no subprocess.
+        if vim.tbl_isempty(vim.fs.find(".git", { upward = true, path = vim.fn.getcwd() })) then
+          return
+        end
+        -- Defer so startup settles and fugitive lazy-loads cleanly.
+        vim.schedule(function()
+          vim.cmd.Git()
+        end)
+      end,
+    })
+  end,
   config = function()
     create_review_commands()
     setup_status_cursor_restore()
