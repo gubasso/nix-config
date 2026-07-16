@@ -34,6 +34,24 @@ return {
       goto_last_written_line()
     end
 
+    -- Keep the tab name while browsing scrollback. The plugin's kitten launches
+    -- the pager as an overlay with a hardcoded, launch-LOCKED
+    -- `--title kitty-scrollback.nvim`, and kitty derives the tab title from the
+    -- active window's title -- so the tab reads "kitty-scrollback.nvim" until the
+    -- pager closes. A permanent remote-control set-window-title overrides even a
+    -- launch-locked title, so we stamp the originating window's title
+    -- (kitty_data.window_title, passed to every callback) onto the overlay. Fired
+    -- from after_launch -- the earliest per-launch callback -- to avoid a flash of
+    -- the plugin name. Mirrors the shell precmd's `kitten @ set-window-title`
+    -- (kitty.conf remote control: allow_remote_control socket-only + listen_on,
+    -- inherited by the overlay via the kitten's --copy-env).
+    local function restore_tab_title(kitty_data, _opts)
+      local title = kitty_data and kitty_data.window_title
+      if type(title) == "string" and title ~= "" then
+        pcall(vim.system, { "kitten", "@", "set-window-title", title })
+      end
+    end
+
     -- IMPORTANT: the config that applies to ALL launches must be at the first
     -- POSITIONAL index `[1]` of the setup table -- NOT under a key named
     -- `default`. launch.lua reads the global config as `configs[1]`:
@@ -56,6 +74,7 @@ return {
     require("kitty-scrollback").setup({
       {
         callbacks = {
+          after_launch = restore_tab_title,
           after_ready = on_ready,
         },
       },
