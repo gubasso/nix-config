@@ -126,9 +126,8 @@ in
       # and greetd looped.
       pkgs.dwm-session
 
-      # Terminal: kitty. Launcher: rofi.
+      # Terminal: kitty. (Launcher rofi is owned by Home Manager's programs.rofi.)
       pkgs.kitty
-      pkgs.rofi
 
       pkgs.xinit
       pkgs.xsetroot
