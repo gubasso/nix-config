@@ -5,14 +5,14 @@ return {
   "folke/snacks.nvim",
   keys = {
     { "<leader>zl", function() Snacks.zen() end, desc = "Zen layout (centered)" },
-    { "<leader>zf", function() Snacks.dim() end, desc = "Focus dim" },
+    { "<leader>zf", function() if Snacks.dim.enabled then Snacks.dim.disable() else Snacks.dim.enable() end end, desc = "Toggle focus dim" },
   },
   ---@type snacks.Config
   opts = {
     zen = {
       toggles = { dim = false }, -- keep layout and dim independent (no auto-dim)
       show = { statusline = false, tabline = false },
-      win = { width = 120 }, -- tune to taste
+      win = { width = 80 }, -- ~80 CPL coding measure (WCAG readability ceiling)
     },
     dim = {},
   },
