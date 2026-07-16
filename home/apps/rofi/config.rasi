@@ -11,6 +11,9 @@ configuration {
   display-drun: "";
   drun-display-format: "{icon} {name} [<span weight='light' size='small'><i>({generic})</i></span>]";
   case-sensitive: false;
+  matching: "fuzzy";
+  sort: true;
+  sorting-method: "fzf-v2";
   show-icons: true;
 
   timeout {
