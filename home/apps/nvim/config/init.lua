@@ -35,5 +35,8 @@ require("core") -- needs to come first
 require("lazy").setup({
   { import = "plugins" },
 }, {
-  -- other lazy.nvim opts
+  -- Config is deployed read-only into the Nix store, so the lockfile cannot
+  -- live in stdpath("config"). Relocate it to the writable state dir; this is
+  -- the only file lazy.nvim writes back into the config tree.
+  lockfile = vim.fn.stdpath("state") .. "/lazy/lazy-lock.json",
 })
