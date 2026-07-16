@@ -41,7 +41,7 @@ in
       show-icons = true;
       matching = "fuzzy";
       sort = true;
-      sorting-method = "fzf-v2";
+      sorting-method = "fzf";
       timeout = {
         action = "kb-cancel";
         delay = 0;
