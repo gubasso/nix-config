@@ -23,6 +23,8 @@
 -- Keymaps (fugitive/git buffers):
 --   <CR>  open entry / fzf commit picker    o  open in split
 --   q     close window                      f  commit file list (name+status)
+--   (  )  previous/next item (fugitive-native; replaced the deprecated <C-P>/<C-N>,
+--         whose nag maps we drop so <C-p> stays "Find Files" here too)
 --   The status buffer is normalized to a persistent listed buffer (bufhidden=hide),
 --   so leaving via <CR> and returning with <leader><tab> (:b#) keeps it around.
 --   On re-entry it auto-refreshes (FugitiveDidChange) and fugitive repositions the
@@ -498,6 +500,42 @@ local function setup_status_cursor_restore()
   })
 end
 
+--- Fugitive binds its own buffer-local <C-P>/<C-N> in the status buffer (see
+--- autoload/fugitive.vim `s:Map` for '<C-P>'/'<C-N>') to move to the previous/next
+--- item, but their only job now is to echo the nag
+--- `CTRL-P is deprecated in favor of (` / `CTRL-N is deprecated in favor of )` —
+--- tpope replaced item navigation with `(` and `)`. Those buffer-local maps also
+--- shadow our global <C-p> -> fzf Find Files inside the status buffer (a
+--- buffer-local map wins over a global one), so ctrl-p behaves inconsistently
+--- there. Drop them so <C-p> falls through to Find Files uniformly; `(` / `)`
+--- still navigate items.
+---
+--- Hooked to `User FugitiveIndex` (not a one-shot FileType) because fugitive
+--- re-installs these maps on every status re-render (they live inside
+--- `fugitive#BufReadStatus`), so a single deletion would return after the first
+--- FugitiveDidChange refresh. Deletion is scheduled so it always runs after
+--- fugitive has (re)installed the maps for the current render.
+local function setup_drop_deprecated_nav_maps()
+  local group = vim.api.nvim_create_augroup("fugitive_drop_ctrl_nav", { clear = true })
+  vim.api.nvim_create_autocmd("User", {
+    group = group,
+    pattern = "FugitiveIndex",
+    callback = function()
+      if vim.b.fugitive_type ~= "index" then
+        return
+      end
+      local buf = vim.api.nvim_get_current_buf()
+      vim.schedule(function()
+        if not vim.api.nvim_buf_is_valid(buf) then
+          return
+        end
+        pcall(vim.keymap.del, "n", "<C-p>", { buffer = buf })
+        pcall(vim.keymap.del, "n", "<C-n>", { buffer = buf })
+      end)
+    end,
+  })
+end
+
 --- Fugitive object buffers (blobs, commits, and the transient buffers native
 --- <CR> routes through after `=` inline-diff expansion) default to
 --- bufhidden=delete, so :b# can land on a wiped buffer and render blank
@@ -721,6 +759,7 @@ return {
   config = function()
     create_review_commands()
     setup_status_cursor_restore()
+    setup_drop_deprecated_nav_maps()
     setup_fugitive_object_persistence()
     setup_status_winbar()
   end,
