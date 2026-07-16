@@ -7,7 +7,7 @@
 #   (2) systemd.user.sessionVariables -> ~/.config/environment.d/10-home-manager.conf
 #       (Home Manager's own env.d fragment; this is the exact mechanism HM uses
 #       for its locale vars). This is the systemd-user / graphical feed, needed
-#       ONLY on the non-NixOS standalone-HM hosts (nova/tumblesuse), whose
+#       ONLY on the non-NixOS standalone-HM hosts (tumblesuse), whose
 #       display-manager session goes through systemd-user and does NOT source
 #       hm-session-vars.sh. Gated to standalone HM via `osConfig == null`.
 # No static environment.d assets, no hand-written profile.sh bridge.

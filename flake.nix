@@ -22,7 +22,7 @@
     nixos-hardware.url = "github:NixOS/nixos-hardware";
 
     # GPU-library wrappers for running Nix-built OpenGL apps on non-NixOS hosts
-    # (nova/tumblesuse). Wired via modules/home/generic-linux.nix.
+    # (tumblesuse). Wired via modules/home/generic-linux.nix.
     nixgl = {
       url = "github:nix-community/nixGL";
       inputs.nixpkgs.follows = "nixpkgs";
