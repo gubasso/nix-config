@@ -3,6 +3,84 @@
 
 local M = {}
 
+-- Repo-wide status summary (porcelain v2), cached briefly so repeated callers
+-- (kitty tab bar on every event, fugitive winbar on every redraw) share one
+-- shell-out per repo rather than one each.
+local status_cache = { root = "", ts = 0, summary = nil }
+
+--- Repo-wide git status summary for `root`. Returns a structured table
+--- `{ ahead, behind, stashed, dirty }`; all zero/false on an empty root or any
+--- git failure. Cached for 2s per root. This is the single source of truth for
+--- the compact status shown in the kitty tab bar and the fugitive winbar.
+function M.status_summary(root)
+  local empty = { ahead = 0, behind = 0, stashed = 0, dirty = false }
+  if not root or root == "" then
+    return empty
+  end
+
+  local uv = vim.uv or vim.loop
+  local now = uv.hrtime()
+  if status_cache.root == root and status_cache.summary and (now - status_cache.ts) < 2e9 then
+    return status_cache.summary
+  end
+
+  local out = vim.fn.systemlist({ "git", "-C", root, "status", "--porcelain=2", "--branch" })
+  if vim.v.shell_error ~= 0 then
+    status_cache = { root = root, ts = now, summary = empty }
+    return empty
+  end
+
+  local ahead, behind, dirty = 0, 0, false
+  for _, line in ipairs(out) do
+    if vim.startswith(line, "# branch.ab ") then
+      local a, b = line:match("^# branch%.ab %+(%d+) %-(%d+)$")
+      ahead = tonumber(a) or 0
+      behind = tonumber(b) or 0
+    elseif not vim.startswith(line, "#") then
+      dirty = true
+    end
+  end
+
+  -- Stash check (refs/stash missing = no stashes = non-zero exit).
+  local stash_out = vim.fn.systemlist({
+    "git",
+    "-C",
+    root,
+    "rev-list",
+    "--walk-reflogs",
+    "--count",
+    "refs/stash",
+  })
+  local stashed = (vim.v.shell_error == 0 and stash_out[1]) and (tonumber(stash_out[1]) or 0) or 0
+
+  local summary = { ahead = ahead, behind = behind, stashed = stashed, dirty = dirty }
+  status_cache = { root = root, ts = now, summary = summary }
+  return summary
+end
+
+--- Render a status summary into the compact string matching starship.toml
+--- [git_status]: `*` dirty, `⇡N` ahead, `⇣N` behind, `≡` stash (individual
+--- indicators are zero-width otherwise). Pure — no I/O. Empty string when clean.
+function M.format_status(summary)
+  if not summary then
+    return ""
+  end
+  local parts = {}
+  if summary.dirty then
+    parts[#parts + 1] = "*"
+  end
+  if summary.ahead > 0 then
+    parts[#parts + 1] = "⇡" .. summary.ahead
+  end
+  if summary.behind > 0 then
+    parts[#parts + 1] = "⇣" .. summary.behind
+  end
+  if summary.stashed > 0 then
+    parts[#parts + 1] = "≡"
+  end
+  return table.concat(parts, "")
+end
+
 --- Run a git shell command and return the first line of stdout, or nil on
 --- failure / empty output. Useful for single-value git queries like
 --- `git rev-parse HEAD`.

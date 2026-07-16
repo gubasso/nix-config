@@ -59,4 +59,26 @@ function M.canonical(path)
   return M.normalize(vim.fn.fnamemodify(path, ":p"))
 end
 
+--- Short label for a path: its last two segments (`parent/leaf`), or the single
+--- segment / "/" when the path has fewer. Used for compact project identity in
+--- the kitty tab bar and the fugitive winbar. Returns nil for nil/empty input.
+function M.parent_leaf(path)
+  if type(path) ~= "string" or path == "" then
+    return nil
+  end
+
+  local segments = {}
+  for seg in path:gmatch("[^/]+") do
+    segments[#segments + 1] = seg
+  end
+
+  local n = #segments
+  if n >= 2 then
+    return segments[n - 1] .. "/" .. segments[n]
+  elseif n == 1 then
+    return segments[1]
+  end
+  return "/"
+end
+
 return M

@@ -46,6 +46,7 @@
 
 local git = require("core.utils.git")
 local nvfzf = require("core.utils.fzf")
+local paths = require("core.utils.paths")
 
 --- Trigger Fugitive's native <CR> action (stage/unstage, open file, etc.).
 --- Uses synchronous execute/normal instead of feedkeys — see keymap comment.
@@ -514,6 +515,134 @@ local function setup_fugitive_object_persistence()
   })
 end
 
+-- Status-buffer winbar header ───────────────────────────────────────────────────
+-- Fugitive's status buffer opens with the branch (Head:/Push:/Pull:) at the top,
+-- but never shows WHICH project you're in. This adds a lean, theme-following winbar
+-- as a one-look overview, prioritised: project (parent/leaf) > git status summary
+-- (starship vocabulary, shared with the kitty tab bar) > branch (muted, redundant,
+-- dropped first when narrow).
+
+--- Truncate to `max` display cells (char-safe, not byte-based), appending "…".
+local function winbar_truncate(s, max)
+  if vim.fn.strchars(s) <= max then
+    return s
+  end
+  return vim.fn.strcharpart(s, 0, max - 1) .. "…"
+end
+
+--- Wrap `text` in a winbar highlight group (statusline-format), resetting after.
+local function winbar_seg(hl, text)
+  return "%#" .. hl .. "#" .. text .. "%*"
+end
+
+--- Winbar highlights, linked to semantic groups so they follow the active
+--- colorscheme. Re-run on ColorScheme (see setup_status_winbar) to stay fresh.
+local function setup_winbar_highlights()
+  local set = vim.api.nvim_set_hl
+  set(0, "FugitiveWinbarProject", { link = "Directory" })
+  set(0, "FugitiveWinbarDirty", { link = "WarningMsg" })
+  set(0, "FugitiveWinbarAhead", { link = "diffAdded" })
+  set(0, "FugitiveWinbarBehind", { link = "DiagnosticInfo" })
+  set(0, "FugitiveWinbarStash", { link = "Comment" })
+  set(0, "FugitiveWinbarBranch", { link = "Comment" })
+end
+
+--- Global render function for the winbar `%{%v:lua.FugitiveWinbar()%}` expression.
+--- Must be global: v:lua cannot call `require(...).fn()`. Re-evaluated on every
+--- redraw, so it stays responsive to window resize (which FugitiveIndex does not
+--- fire on). Reads the stable identity vars set on FugitiveIndex off the *drawn*
+--- window's buffer (via g:statusline_winid, not 0), plus the live cached git
+--- summary for the volatile counts.
+function _G.FugitiveWinbar()
+  local winid = vim.g.statusline_winid
+  local valid = winid and winid ~= 0 and vim.api.nvim_win_is_valid(winid)
+  local buf = valid and vim.api.nvim_win_get_buf(winid) or vim.api.nvim_get_current_buf()
+
+  local project = vim.b[buf].winbar_project
+  if not project or project == "" then
+    return ""
+  end
+  local root = vim.b[buf].winbar_root or ""
+  local branch = vim.b[buf].winbar_branch or ""
+  local width = valid and vim.api.nvim_win_get_width(winid) or vim.o.columns
+
+  local summary = git.status_summary(root)
+
+  -- Status cluster: tight starship-style concatenation, each part coloured.
+  local status = {}
+  if summary.dirty then
+    status[#status + 1] = winbar_seg("FugitiveWinbarDirty", "*")
+  end
+  if summary.ahead > 0 then
+    status[#status + 1] = winbar_seg("FugitiveWinbarAhead", "⇡" .. summary.ahead)
+  end
+  if summary.behind > 0 then
+    status[#status + 1] = winbar_seg("FugitiveWinbarBehind", "⇣" .. summary.behind)
+  end
+  if summary.stashed > 0 then
+    status[#status + 1] = winbar_seg("FugitiveWinbarStash", "≡")
+  end
+  local status_str = table.concat(status, "")
+
+  -- Groups joined by wider gaps: project (protected) > status > branch (first to
+  -- drop). project ≥ (any width) · status ≥ 50 · branch ≥ 80.
+  local groups = { winbar_seg("FugitiveWinbarProject", width < 50 and winbar_truncate(project, 24) or project) }
+  if width >= 50 and status_str ~= "" then
+    groups[#groups + 1] = status_str
+  end
+  if width >= 80 and branch ~= "" then
+    groups[#groups + 1] = winbar_seg("FugitiveWinbarBranch", winbar_truncate(branch, 30))
+  end
+
+  return " " .. table.concat(groups, "   ")
+end
+
+--- Attach the winbar to fugitive index buffers. On FugitiveIndex (guarded to the
+--- index buffer, like normalize_status_buffer) we cache identity vars and set the
+--- window's winbar; a BufWinEnter/BufEnter guard clears our winbar from any window
+--- that later shows a non-index buffer (winbar is window-local and would otherwise
+--- leave a blank reserved row). Highlights are (re)linked on ColorScheme.
+local function setup_status_winbar()
+  setup_winbar_highlights()
+  local hl_group = vim.api.nvim_create_augroup("fugitive_winbar_hl", { clear = true })
+  vim.api.nvim_create_autocmd("ColorScheme", {
+    group = hl_group,
+    callback = setup_winbar_highlights,
+  })
+
+  local group = vim.api.nvim_create_augroup("fugitive_winbar", { clear = true })
+
+  vim.api.nvim_create_autocmd("User", {
+    group = group,
+    pattern = "FugitiveIndex",
+    callback = function()
+      if vim.b.fugitive_type ~= "index" then
+        return
+      end
+      local wt = vim.fn.FugitiveWorkTree()
+      local project = (wt ~= "" and paths.parent_leaf(wt)) or nil
+      vim.b.winbar_root = wt
+      vim.b.winbar_project = project
+      vim.b.winbar_branch = vim.fn.FugitiveHead()
+      vim.wo.winbar = project and "%{%v:lua.FugitiveWinbar()%}" or ""
+    end,
+  })
+
+  -- Drop a leaked winbar when a non-index buffer enters a window that had ours.
+  vim.api.nvim_create_autocmd({ "BufWinEnter", "BufEnter" }, {
+    group = group,
+    callback = function(args)
+      if vim.b[args.buf].fugitive_type == "index" then
+        return -- the FugitiveIndex handler owns setting it
+      end
+      local wb = vim.wo.winbar
+      if type(wb) == "string" and wb:find("FugitiveWinbar", 1, true) then
+        vim.wo.winbar = ""
+      end
+    end,
+  })
+end
+
 -- Plugin spec ─────────────────────────────────────────────────────────────────
 
 return {
@@ -587,6 +716,7 @@ return {
     create_review_commands()
     setup_status_cursor_restore()
     setup_fugitive_object_persistence()
+    setup_status_winbar()
   end,
   -- Lazy-load: plugin is loaded only when one of these keymaps is pressed.
   keys = {

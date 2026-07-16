@@ -4,6 +4,9 @@
 
 local opt = vim.opt
 
+local git = require("core.utils.git")
+local paths = require("core.utils.paths")
+
 local kitty_mode_map = {
   n = "N",
   no = "N",
@@ -51,88 +54,13 @@ end
 -- Emitted as the trailing protocol field; empty means "no label" (renderer then
 -- falls back to the filename).
 local function kitty_cwd_label()
-  local cwd = vim.fn.getcwd()
-  if not cwd or cwd == "" then
-    return ""
-  end
-
-  local segments = {}
-  for seg in cwd:gmatch("[^/]+") do
-    segments[#segments + 1] = seg
-  end
-
-  local n = #segments
-  if n >= 2 then
-    return segments[n - 1] .. "/" .. segments[n]
-  elseif n == 1 then
-    return segments[1]
-  end
-  return "/"
+  return paths.parent_leaf(vim.fn.getcwd()) or ""
 end
 
-local kitty_git_cache = { root = "", ts = 0, status = "" }
-
+-- Repo-wide status string for the tab bar. Parse + cache live in core.utils.git
+-- (shared with the fugitive winbar); this renders the starship-style compact form.
 local function kitty_git_status(root)
-  if root == "" then
-    return ""
-  end
-
-  local uv = vim.uv or vim.loop
-  local now = uv.hrtime()
-  if kitty_git_cache.root == root and (now - kitty_git_cache.ts) < 2e9 then
-    return kitty_git_cache.status
-  end
-
-  local out = vim.fn.systemlist({ "git", "-C", root, "status", "--porcelain=2", "--branch" })
-  if vim.v.shell_error ~= 0 then
-    kitty_git_cache = { root = root, ts = now, status = "" }
-    return ""
-  end
-
-  local ahead, behind = 0, 0
-  local dirty = false
-
-  for _, line in ipairs(out) do
-    if vim.startswith(line, "# branch.ab ") then
-      local a, b = line:match("^# branch%.ab %+(%d+) %-(%d+)$")
-      ahead = tonumber(a) or 0
-      behind = tonumber(b) or 0
-    elseif not vim.startswith(line, "#") then
-      dirty = true
-    end
-  end
-
-  -- Stash check (refs/stash missing = no stashes = non-zero exit)
-  local stash_out = vim.fn.systemlist({
-    "git",
-    "-C",
-    root,
-    "rev-list",
-    "--walk-reflogs",
-    "--count",
-    "refs/stash",
-  })
-  local stashed = (vim.v.shell_error == 0 and stash_out[1]) and (tonumber(stash_out[1]) or 0) or 0
-
-  -- Compact format matching starship.toml [git_status] (individual indicators
-  -- are zero-width spaces; only * dirty-flag, ⇡⇣ ahead/behind, ≡ stash show).
-  local parts = {}
-  if dirty then
-    parts[#parts + 1] = "*"
-  end
-  if ahead > 0 then
-    parts[#parts + 1] = "⇡" .. ahead
-  end
-  if behind > 0 then
-    parts[#parts + 1] = "⇣" .. behind
-  end
-  if stashed > 0 then
-    parts[#parts + 1] = "≡"
-  end
-
-  local status = table.concat(parts, "")
-  kitty_git_cache = { root = root, ts = now, status = status }
-  return status
+  return git.format_status(git.status_summary(root))
 end
 
 -- ── Data channel: publish status as kitty user vars (OSC 1337) ───────────────
