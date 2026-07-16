@@ -1,5 +1,6 @@
 layers:
   - base
+  - dotfiles
   - nix
   - shell
   - kitty
