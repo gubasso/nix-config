@@ -10,6 +10,12 @@ _final: prev: {
   # pkgs/ and exposed here so the fzf app module can source it from the store.
   fzf-tab-completion = import ../pkgs/fzf-tab-completion { pkgs = prev; };
 
+  # Theme library (resolver + emitters) over the public theme registry. Exposed
+  # here so any Home Manager app module can resolve `hostSettings.theme` and emit
+  # its native color config without a cross-flake path import. Pure functions of
+  # a theme attrset — no build inputs. See lib/theme and docs/reference/theming.md.
+  themeLib = import ../lib/theme { inherit (prev) lib; };
+
   # Assemble a config directory as REAL files inside a single store path, so it
   # can be deployed as ONE whole-directory symlink (like ~/.config/nvim) rather
   # than a real dir full of per-file store symlinks. This is the canonical fix

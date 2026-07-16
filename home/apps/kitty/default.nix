@@ -4,9 +4,20 @@
   pkgs,
   config,
   lib,
+  hostSettings,
   ...
 }:
 
+let
+  # current-theme.conf (kitty's `include` target) is generated from the host's
+  # theme (lib/theme emitter), overlaid onto the vendored ./config dir. Only the
+  # colors are derived; kitty.conf keeps its static `include current-theme.conf`.
+  theme = pkgs.themeLib.resolve (hostSettings.theme or "everforest");
+  kittyThemeDir = pkgs.runCommandLocal "kitty-theme" { } ''
+    mkdir -p "$out"
+    cp ${pkgs.writeText "current-theme.conf" (pkgs.themeLib.mkKittyTheme theme)} "$out/current-theme.conf"
+  '';
+in
 {
   home = {
     # Install kitty GL-wrapped for generic-linux hosts (identity wrap on NixOS),
@@ -36,7 +47,7 @@
   # mirrors nvim. mkDefault yields to a private per-host overlay (nix-secrets
   # shadows host.conf). Replaces programs.kitty's generated kitty.conf and the
   # former per-file xdg.configFile entries.
-  xdg.configFile."kitty".source = lib.mkDefault (pkgs.mkRealConfigDir "kitty" ./config null);
+  xdg.configFile."kitty".source = lib.mkDefault (pkgs.mkRealConfigDir "kitty" ./config kittyThemeDir);
 
   programs.bash.initExtra = ''
     if [[ -n "''${KITTY_WINDOW_ID:-}" && -z "''${NVIM:-}" ]]; then

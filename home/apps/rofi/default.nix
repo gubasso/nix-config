@@ -1,18 +1,20 @@
-# rofi config, themes, and active-theme state seed.
-{ hostSettings, ... }:
+# rofi config: static launcher config + shared layout, with the active theme's
+# colors derived from the host's `hostSettings.theme` (lib/theme emitter). The
+# generated active-theme.rasi = the theme color block + @import of layout.rasi.
+{ pkgs, hostSettings, ... }:
 
 let
-  rofiTheme = hostSettings.rofiTheme or "everforest";
+  theme = pkgs.themeLib.resolve (hostSettings.theme or "everforest");
+  activeTheme = pkgs.writeText "rofi-active-theme.rasi" ''
+    ${pkgs.themeLib.mkRofiColors theme}
+    @import "~/.config/rofi/layout.rasi"
+  '';
 in
 {
-  home.file.".local/state/rofi/active-theme.rasi".source = ./themes + "/${rofiTheme}.rasi";
+  home.file.".local/state/rofi/active-theme.rasi".source = activeTheme;
   xdg.configFile = {
     "rofi/config.rasi".source = ./config.rasi;
     "rofi/rofimoji.rc".source = ./rofimoji.rc;
-    "rofi/themes/everforest.rasi".source = ./themes/everforest.rasi;
-    "rofi/themes/catppuccin-mocha.rasi".source = ./themes/catppuccin-mocha.rasi;
-    "rofi/themes/dracula.rasi".source = ./themes/dracula.rasi;
-    "rofi/themes/purple-city.rasi".source = ./themes/purple-city.rasi;
-    "rofi/themes/tokyonight.rasi".source = ./themes/tokyonight.rasi;
+    "rofi/layout.rasi".source = ./layout.rasi;
   };
 }

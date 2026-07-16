@@ -52,6 +52,8 @@
       lib = {
         inherit mkHost mkHomeHost;
         mkDisko = import ./lib/mk-disko.nix;
+        # Theme resolver + emitters over ./themes (also on pkgs as `themeLib`).
+        theme = import ./lib/theme { inherit (nixpkgs) lib; };
       };
 
       nixosModules = {
@@ -108,7 +110,7 @@
       checks.${system} = {
         inherit (pkgs) dwm dwm-session;
         formatting = pkgs.runCommand "nixfmt-check" { nativeBuildInputs = [ pkgs.nixfmt ]; } ''
-          find ${./flake.nix} ${./lib} ${./modules} ${./overlays} ${./pkgs} \
+          find ${./flake.nix} ${./lib} ${./modules} ${./overlays} ${./pkgs} ${./themes} \
             -name '*.nix' -print0 | xargs -0 nixfmt --check
           touch "$out"
         '';

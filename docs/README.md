@@ -3,7 +3,7 @@
 This documentation covers the public `nix-config` framework.
 
 - [Reference](reference/) documents public factories, modules, and generic
-  layouts.
+  layouts, including the [theme system](reference/theming.md) (ADR-0017).
 - [Guides](guides/) use placeholders for private consumers and hosts.
   [development.md](guides/development.md) covers the fmt/lint/check/test workflow.
 - [Explanation](explanation/) describes the public/private dependency model.

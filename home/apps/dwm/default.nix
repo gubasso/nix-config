@@ -6,6 +6,16 @@
   ...
 }:
 
+let
+  # Xresources = the static base (dpi/cursor) + the host theme's dwm color block
+  # (lib/theme emitter). dwm reads these at startup via loadxrdb()
+  # (dwm.{norm,sel}{bg,fg,border}color + color0..15); Mod+F5 reloads live.
+  theme = pkgs.themeLib.resolve (hostSettings.theme or "everforest");
+  xresources = pkgs.writeText "Xresources" ''
+    ${builtins.readFile ./Xresources}
+    ${pkgs.themeLib.mkDwmXresources theme}
+  '';
+in
 {
   config = lib.mkIf ((hostSettings.desktop or "none") == "dwm") {
     home = {
@@ -23,7 +33,7 @@
           source = ./bin/dwm-status-updates;
           executable = true;
         };
-        ".Xresources".source = ./Xresources;
+        ".Xresources".source = xresources;
         ".local/share/dwm/autostart_blocking.sh" = {
           source = ./share/autostart_blocking.sh;
           executable = true;
@@ -47,6 +57,6 @@
         ".local/lib/dwm-status-lib".source = ./lib/dwm-status-lib;
       };
     };
-    xdg.configFile."dwm/Xresources".source = ./Xresources;
+    xdg.configFile."dwm/Xresources".source = xresources;
   };
 }
