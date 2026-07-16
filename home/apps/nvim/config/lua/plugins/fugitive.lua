@@ -545,6 +545,7 @@ local function setup_winbar_highlights()
   set(0, "FugitiveWinbarBehind", { link = "DiagnosticInfo" })
   set(0, "FugitiveWinbarStash", { link = "Comment" })
   set(0, "FugitiveWinbarBranch", { link = "Comment" })
+  set(0, "FugitiveWinbarDelim", { link = "NonText" })
 end
 
 --- Global render function for the winbar `%{%v:lua.FugitiveWinbar()%}` expression.
@@ -594,7 +595,12 @@ function _G.FugitiveWinbar()
     groups[#groups + 1] = winbar_seg("FugitiveWinbarBranch", winbar_truncate(branch, 30))
   end
 
-  return " " .. table.concat(groups, "   ")
+  -- Curly-brace frame (muted), centred across the window via the statusline `%=`
+  -- split trick (`%=…%=` distributes free space equally on both sides).
+  local content = winbar_seg("FugitiveWinbarDelim", "{ ")
+    .. table.concat(groups, "   ")
+    .. winbar_seg("FugitiveWinbarDelim", " }")
+  return "%=" .. content .. "%="
 end
 
 --- Attach the winbar to fugitive index buffers. On FugitiveIndex (guarded to the
