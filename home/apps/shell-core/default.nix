@@ -10,6 +10,7 @@
 
 let
   desktop = hostSettings.desktop or "none";
+  theme = pkgs.themeLib.resolve (hostSettings.theme or "everforest");
 in
 {
   programs.bash = {
@@ -62,6 +63,12 @@ in
     # conflict. bashrcExtra runs before HM's own interactive guard, and bebash is
     # interactive-only, so guard it ourselves.
     bashrcExtra = ''
+      # Theme-driven UI palette (ADR-0002 __UI_SGR). Sourced before bebash so the
+      # framework and scripts read the active theme's colors.
+      if [[ $- == *i* ]] && [ -r "$HOME/.config/bash/theme-palette.bash" ]; then
+        . "$HOME/.config/bash/theme-palette.bash"
+      fi
+
       if [[ $- == *i* ]] && [ -r "$HOME/.local/lib/bebash/init.bash" ]; then
         . "$HOME/.local/lib/bebash/init.bash"
       fi
@@ -129,7 +136,10 @@ in
 
   home.file.".inputrc".source = ./inputrc;
 
-  xdg.configFile =
+  xdg.configFile = {
+    "bash/theme-palette.bash".text = pkgs.themeLib.mkBashPalette theme;
+  }
+  //
     lib.optionalAttrs
       (
         privateAppsDir != null

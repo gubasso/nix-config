@@ -15,9 +15,10 @@
     horizontal_padding = 16
     text_icon_padding = 16
     frame_width = 2
-    frame_color = "#2C094C"
     gap_size = 4
     separator_color = frame
+    # Colors (frame_color + per-urgency bg/fg) are theme-driven; see the
+    # generated dunstrc.d/zzz-theme.conf drop-in (nix-config lib/theme).
 
     font = monospace 10
     markup = full
@@ -36,19 +37,10 @@
     mouse_middle_click = do_action
 
 [urgency_low]
-    background = "#110326"
-    foreground = "#D9CCE8"
-    frame_color = "#2C094C"
     timeout = 5
 
 [urgency_normal]
-    background = "#16042D"
-    foreground = "#F5F0FF"
-    frame_color = "#C89DEA"
     timeout = 10
 
 [urgency_critical]
-    background = "#16042D"
-    foreground = "#F5F0FF"
-    frame_color = "#FF4D8D"
     timeout = 0

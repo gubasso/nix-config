@@ -62,6 +62,13 @@
     };
   };
 
+  # X cursor theme + size (fed to XCURSOR_THEME/XCURSOR_SIZE by
+  # modules/home/env-shell.nix). Dark themes use the classic (dark) Bibata.
+  cursor = {
+    theme = "Bibata-Modern-Classic";
+    size = 32;
+  };
+
   # Sibling schemes — nvim colorscheme keys installed in the consumer. Apps
   # driven by the emitted palette (kitty, rofi, dwm) need no sibling entry.
   associatedSchemes = {

@@ -1,5 +1,4 @@
 Xft.dpi: 192
 
-! Cursor
-Xcursor.theme: Bibata-Modern-Classic
-Xcursor.size: 32
+! Cursor (Xcursor.theme/size) is theme-driven — appended by the lib/theme
+! mkDwmXresources emitter from theme.cursor. Colors follow below it.

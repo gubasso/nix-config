@@ -14,6 +14,8 @@
 {
   lib,
   config,
+  pkgs,
+  hostSettings ? { },
   osConfig ? null,
   ...
 }:
@@ -27,6 +29,10 @@ let
     "$HOME/.local/share/bebash/commands"
     "$HOME/.cargo/bin"
   ];
+
+  # Cursor theme/size follow the active theme (theme.cursor), keeping the
+  # X cursor consistent with the rest of the palette-driven look.
+  theme = pkgs.themeLib.resolve (hostSettings.theme or "everforest");
 in
 {
   # SoT. Cross-variable references are resolved at Nix eval time (absolute
@@ -39,8 +45,8 @@ in
     SUDO_EDITOR = "nvim";
     SYSTEMD_EDITOR = "nvim";
     PROJECTS = "${config.home.homeDirectory}/Projects";
-    XCURSOR_THEME = "Bibata-Modern-Classic";
-    XCURSOR_SIZE = "32";
+    XCURSOR_THEME = theme.cursor.theme;
+    XCURSOR_SIZE = toString theme.cursor.size;
     SSH_AUTH_SOCK = "\${XDG_RUNTIME_DIR}/ssh-agent.socket";
     SSH_ASKPASS = "\${HOME}/.local/bin/ssh-askpass-rofi";
     SSH_ASKPASS_REQUIRE = "prefer";
