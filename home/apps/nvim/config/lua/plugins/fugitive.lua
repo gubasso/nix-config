@@ -567,13 +567,18 @@ return {
         if vim.tbl_isempty(vim.fs.find(".git", { upward = true, path = vim.fn.getcwd() })) then
           return
         end
-        -- Defer so startup settles and fugitive lazy-loads cleanly. 0Git opens
-        -- the status in the current (full) window -- matching the `gs` keymap
-        -- (open_status(false)); bare :Git would open a horizontal split. The
-        -- helper isn't reused here: at VimEnter fugitive isn't loaded, so its
-        -- FugitiveGitDir() lookup would error, and no status buffer exists yet.
+        -- Defer so startup settles and fugitive lazy-loads cleanly. Use
+        -- `Git ++curwin` (NOT `0Git`): fugitive opens the summary full-window
+        -- only when curwin is true (autoload/fugitive.vim: s:StatusCommand ->
+        -- :edit vs keepalt split). The `0` count sets curwin only when fugitive
+        -- is already loaded; here it lazy-loads via lazy.nvim's `cmd` stub, which
+        -- re-executes the command WITHOUT the count, so `0Git` degrades to a
+        -- split. `++curwin` is an argument (survives the lazy re-exec) and forces
+        -- curwin=true -> full current window. The helper isn't reused here: at
+        -- VimEnter fugitive isn't loaded, so its FugitiveGitDir() lookup would
+        -- error, and no status buffer exists yet.
         vim.schedule(function()
-          vim.cmd("0Git")
+          vim.cmd("Git ++curwin")
         end)
       end,
     })
