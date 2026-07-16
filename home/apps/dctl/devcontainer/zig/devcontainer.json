@@ -1,6 +1,6 @@
 {
   "name": "${localWorkspaceFolderBasename}-sandbox",
   "postStartCommand": {
-    "zig": "bash -lc 'if [ -e .envrc ]; then direnv exec . true; fi'"
+    "zig": "bash -lc 'if [ -e .envrc ]; then direnv allow . && direnv exec . true; fi'"
   }
 }

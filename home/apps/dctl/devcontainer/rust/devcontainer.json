@@ -1,7 +1,7 @@
 {
   "name": "${localWorkspaceFolderBasename}-sandbox",
   "postCreateCommand": {
-    "rust": "bash -lc 'if [ -e .envrc ]; then direnv exec . cargo build; fi'"
+    "rust": "bash -lc 'if [ -e .envrc ]; then direnv allow . && direnv exec . cargo build; fi'"
   },
   "mounts": [
     {

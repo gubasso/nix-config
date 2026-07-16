@@ -6,6 +6,6 @@
     "4173": { "label": "Vite preview", "onAutoForward": "silent" }
   },
   "postStartCommand": {
-    "node": "bash -lc 'if [ -e .envrc ]; then direnv exec . sh -c \"pnpm install && pre-commit install\"; fi'"
+    "node": "bash -lc 'if [ -e .envrc ]; then direnv allow . && direnv exec . sh -c \"pnpm install && pre-commit install\"; fi'"
   }
 }

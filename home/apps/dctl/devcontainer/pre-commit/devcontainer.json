@@ -1,5 +1,5 @@
 {
   "postCreateCommand": {
-    "pre-commit": "bash -lc 'if [ -e .envrc ] && [ -e .pre-commit-config.yaml ]; then direnv exec . pre-commit install; fi'"
+    "pre-commit": "bash -lc 'if [ -e .envrc ] && [ -e .pre-commit-config.yaml ]; then direnv allow . && direnv exec . pre-commit install; fi'"
   }
 }

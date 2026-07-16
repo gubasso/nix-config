@@ -1,6 +1,6 @@
 {
   "name": "${localWorkspaceFolderBasename}-sandbox",
   "postStartCommand": {
-    "python": "bash -lc 'if [ -e .envrc ]; then direnv exec . sh -c \"poetry install && pre-commit install\"; fi'"
+    "python": "bash -lc 'if [ -e .envrc ]; then direnv allow . && direnv exec . sh -c \"poetry install && pre-commit install\"; fi'"
   }
 }

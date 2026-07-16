@@ -1,11 +1,6 @@
 {
   "mounts": [
     {
-      "source": "${localEnv:HOME}/.profile",
-      "target": "${localEnv:HOME}/.profile",
-      "type": "bind"
-    },
-    {
       "source": "${localEnv:HOME}/.config/environment.d",
       "target": "${localEnv:HOME}/.config/environment.d",
       "type": "bind"
