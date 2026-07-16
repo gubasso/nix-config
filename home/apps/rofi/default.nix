@@ -1,18 +1,38 @@
 # rofi: Home-Manager-generated config (programs.rofi) plus the shared layout.
 # Colors come from the host's `hostSettings.theme` (lib/theme emitter) and the
-# per-host font from `hostSettings.rofiFont`. The generated active-theme.rasi
-# (theme color block + @import of layout.rasi) is bridged in via the module's
-# `theme` option, so config.rasi is generated from Nix -- no hand-authored file.
-{ pkgs, hostSettings, ... }:
+# font from the SoT typography via themeLib.fontOf, overridable per host with
+# `hostSettings.appFonts.rofi`. The generated active-theme.rasi (theme color
+# block + @import of layout.rasi) is bridged in via the module's `theme` option,
+# so config.rasi is generated from Nix -- no hand-authored file.
+{
+  pkgs,
+  lib,
+  hostSettings,
+  ...
+}:
 
 let
   theme = pkgs.themeLib.resolve (hostSettings.theme or "everforest");
+  # rofi's bespoke default: IBM Plex Mono at xs (=10), overridable per host.
+  rofiFont = pkgs.themeLib.fontOf theme (
+    {
+      family = "ibmplex";
+      size = "xs";
+    }
+    // (hostSettings.appFonts.rofi or { })
+  );
   activeTheme = pkgs.writeText "rofi-active-theme.rasi" ''
     ${pkgs.themeLib.mkRofiColors theme}
     @import "~/.config/rofi/layout.rasi"
   '';
 in
 {
+  # Provision the resolved font (registered families only; ad-hoc ones are the
+  # user's responsibility — see docs/reference/theming.md).
+  home.packages = lib.optional (
+    pkgs.fontPackages ? ${rofiFont.family}
+  ) pkgs.fontPackages.${rofiFont.family};
+
   # Per-host generated theme (colors + layout import); color SoT stays lib/theme.
   home.file.".local/state/rofi/active-theme.rasi".source = activeTheme;
 
@@ -23,7 +43,7 @@ in
   # Home Manager owns config.rasi and the rofi package (single owner).
   programs.rofi = {
     enable = true;
-    font = hostSettings.rofiFont or "IBM Plex Mono 10";
+    font = pkgs.themeLib.mkRofiFont rofiFont;
     modes = [
       "window"
       "drun"

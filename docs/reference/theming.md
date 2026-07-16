@@ -29,10 +29,12 @@ Tiers:
     accent error warn success info;
   };
   typography = {
-    mono   = { family; size; };
-    ui     = { family; size; };
-    glyphs = "<nerd-font family>";
-    weights = { regular; medium; bold; };
+    families = { <token> = "<fontconfig family>"; … };  # registry of official fonts
+    sizes    = { <token> = <int>; … };                   # named size scale (points)
+    roles    = { mono   = { family = <fam-token>; size = <size-token>; };
+                 ui     = { family; size; };
+                 glyphs = { family; };  };                # role -> family+size tokens
+    weights  = { regular; medium; bold; };
   };
   associatedSchemes = {             # per-app upstream scheme NAMES (name-ref only)
     nvim  = [ … ];
@@ -75,13 +77,25 @@ Exposed as `pkgs.themeLib` (overlay, for app modules) and `flake.lib.theme`.
 
 - `resolve name` → the theme attrset (throws on unknown name).
 - `colorOf theme role` → hex for a semantic role or raw slot.
+- `fontOf theme { role?; family?; size? }` → resolved `{ family = "<string>";
+  size = <int|null>; }`. `family`/`size` may be registry/scale tokens or literal
+  values (a literal family string is the escape hatch); an explicit spec value
+  overrides the role default. Callers layer precedence by merging attrs before the
+  call: `fontOf theme (roleDefault // appDefault // hostOverride)`.
 - `mkRofiColors theme` → rofi `* { … }` color block (canonical vars: `@bg
   @surface @overlay @muted @fg @accent @border @error @warn @success @info`).
-- `mkKittyTheme theme` → kitty `current-theme.conf` body.
+- `mkRofiFont font` → rofi/pango `"Family Size"` string (for `programs.rofi.font`).
+- `mkKittyTheme theme font` → kitty `current-theme.conf` body (colors **and**
+  `font_family`/`font_size`).
 - `mkDwmXresources theme` → Xresources block (`dwm.{norm,sel}{bg,fg,border}color`
   + `color0..15`).
 - `assertAppScheme theme app scheme` → validates a host pick is in the theme's
   `associatedSchemes.<app>`; returns the scheme or throws.
+
+`pkgs.fontPackages` (overlay) maps a fontconfig family string → the nixpkgs
+package that provides it; an app module installs the package for the font it
+resolves, so a registered "official" family is provisioned on every host. Ad-hoc
+(unregistered) families install nothing — the user provisions those.
 
 ## Host selection
 
@@ -89,19 +103,26 @@ Exposed as `pkgs.themeLib` (overlay, for app modules) and `flake.lib.theme`.
 hostSettings = {
   theme = "purple-city";                       # dir name in themes/
   appSchemes = { nvim = "tokyonight-night"; };  # ⊆ associatedSchemes.<app>
+  appFonts = {                                  # per-app font override (optional)
+    rofi  = { family = "ibmplex"; size = "lg"; };  # tokens …
+    kitty = { family = "IBM Plex Mono"; size = 18; };  # … or literals
+  };
 };
 ```
 
-Absent `hostSettings.theme`, app modules fall back to `"everforest"`.
+Absent `hostSettings.theme`, app modules fall back to `"everforest"`. Each
+`appFonts.<app>` is merged over the app's own default and the theme role (highest
+precedence) and resolved through `fontOf`; omit it to take the theme default.
 
 ## App consumption
 
-| App | Seam | File |
-| --- | --- | --- |
-| rofi | `mkRofiColors` + `@import layout.rasi` → generated `active-theme.rasi` | `home/apps/rofi/default.nix` |
-| kitty | `mkKittyTheme` overlaid as `current-theme.conf` (kitty.conf `include`s it) | `home/apps/kitty/default.nix` |
-| dwm | `mkDwmXresources` appended to `Xresources`; read by `loadxrdb` (Mod+F5 reload) | `home/apps/dwm/default.nix` |
-| nvim | reads `hostSettings.appSchemes.nvim` (name-ref; native plugin) | consumer repo |
+| App | Colors | Font | File |
+| --- | --- | --- | --- |
+| rofi | `mkRofiColors` + `@import layout.rasi` → `active-theme.rasi` | `fontOf` → `mkRofiFont` → `programs.rofi.font` | `home/apps/rofi/default.nix` |
+| kitty | `mkKittyTheme` overlaid as `current-theme.conf` (kitty.conf `include`s it) | `fontOf` (mono role) folded into the same `current-theme.conf` | `home/apps/kitty/default.nix` |
+| dwm | `mkDwmXresources` appended to `Xresources`; read by `loadxrdb` (Mod+F5 reload) | not wired (follow-up) | `home/apps/dwm/default.nix` |
+| nvim | reads `hostSettings.appSchemes.nvim` (name-ref; native plugin) | n/a | consumer repo |
 
-Note: fonts are defined in the SoT (`typography`) as the single source; wiring
-kitty/rofi/dwm fonts from it is a follow-up — colors are wired today.
+Note: the kitty/rofi fonts are wired from the SoT `typography` today (via
+`fontOf` + per-app defaults + `hostSettings.appFonts`); dwm's font is still a
+follow-up. The named font is provisioned through `pkgs.fontPackages`.

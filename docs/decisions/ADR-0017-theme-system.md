@@ -21,6 +21,9 @@ Chosen option: **pure-Nix theme SoT + emitters** — a theme is a host-agnostic
 attrset under `themes/<name>` (base16 palette + a semantic-alias layer +
 typography + name-referenced sibling schemes); `lib/theme` emitters transform it
 into rofi/kitty/dwm color config; a host selects one via `hostSettings.theme`.
+Typography is a token SoT — a family registry + size scale + roles — resolved by
+`fontOf` (with per-app defaults and per-host `hostSettings.appFonts` overrides)
+and provisioned via `pkgs.fontPackages`; kitty/rofi fonts are emitted from it.
 Rejected Stylix/nix-colors (extra dependency, weak per-app control) and no
 wallpaper-driven generation. Sibling schemes (tokyonight, catppuccin…) are
 name references only — the app loads them natively. Design stays Stylix-compatible
@@ -37,7 +40,9 @@ for a possible future.
 
 ## Status
 
-Implemented. `lib/theme` (resolver + emitters), `themes/` (registry + `purple-city`,
-`everforest`), `pkgs.themeLib` (`overlays/default.nix`), and `flake.lib.theme`;
-consumed by `home/apps/{rofi,kitty,dwm}`. Schema: `docs/reference/theming.md`.
+Implemented. `lib/theme` (resolver + `fontOf` + emitters, incl. `mkRofiFont` and
+font-bearing `mkKittyTheme`), `themes/` (registry + `purple-city`, `everforest`),
+`pkgs.themeLib` + `pkgs.fontPackages` (`overlays/default.nix`), and `flake.lib.theme`;
+consumed by `home/apps/{rofi,kitty,dwm}` (kitty/rofi fonts from the SoT typography).
+Schema: `docs/reference/theming.md`.
 Authoring: `docs/guides/authoring-a-theme.md`. Rationale: `docs/explanation/theming-model.md`.

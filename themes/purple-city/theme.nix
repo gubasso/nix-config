@@ -48,16 +48,38 @@
     info = "base0C";
   };
 
+  # Typography SoT (design tokens). `families` is the registry of "official"
+  # fonts (token -> fontconfig family string); `sizes` a named scale; `roles`
+  # bind a semantic role to a family+size token. Apps resolve via themeLib.fontOf
+  # against a role and/or their own family/size, and hosts override per app via
+  # `hostSettings.appFonts.<app>`. Schema: docs/reference/theming.md.
   typography = {
-    mono = {
-      family = "Hack";
-      size = 17;
+    families = {
+      hack = "Hack";
+      inter = "Inter";
+      ibmplex = "IBM Plex Mono";
+      symbols = "Symbols Nerd Font";
     };
-    ui = {
-      family = "Inter";
-      size = 11;
+    sizes = {
+      xs = 10;
+      sm = 11;
+      md = 13;
+      lg = 15;
+      xl = 17;
     };
-    glyphs = "Symbols Nerd Font";
+    roles = {
+      mono = {
+        family = "hack";
+        size = "xl";
+      };
+      ui = {
+        family = "inter";
+        size = "sm";
+      };
+      glyphs = {
+        family = "symbols";
+      };
+    };
     weights = {
       regular = 400;
       medium = 500;

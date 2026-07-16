@@ -8,7 +8,9 @@ Source of truth: [`../theme.nix`](../theme.nix) (`typography`).
 | UI | Inter | 11 | Bar/launcher labels (sans-serif). |
 | Glyphs | Symbols Nerd Font | — | Icons, powerline, status glyphs (fallback). |
 
-Weights: regular 400 · medium 500 · bold 700.
+Weights: regular 400 · medium 500 · bold 700. The `typography` block is a token
+SoT: a `families` registry (`hack` `inter` `ibmplex` `symbols`) + a `sizes` scale
+(`xs`=10 … `xl`=17) + `roles` binding the tokens above.
 
 ## Guidance
 
@@ -16,6 +18,7 @@ Weights: regular 400 · medium 500 · bold 700.
 - Keep one mono family across apps so column widths and glyph metrics match.
 - Nerd-font glyphs supply icons; don't embed colored emoji in status output.
 
-> Note: fonts are defined here as the single source; app-side font wiring
-> (kitty/rofi/dwm) from the SoT is a follow-up — colors are wired today. See
-> `docs/reference/theming.md`.
+> Fonts are wired from this SoT: kitty (mono role) and rofi resolve via
+> `themeLib.fontOf` and are provisioned through `pkgs.fontPackages`; a host can
+> override per app with `hostSettings.appFonts.<app>`. dwm's font is a follow-up.
+> See `docs/reference/theming.md`.

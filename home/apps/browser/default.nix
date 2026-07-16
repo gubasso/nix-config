@@ -15,7 +15,6 @@
       feh
       fontconfig
       liberation_ttf
-      nerd-fonts.hack
     ]);
 
   home.file = {

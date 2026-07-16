@@ -1,6 +1,6 @@
 # Public GnuPG agent config. The pinentry program is the only per-host value
-# (single SoT hostSettings.gpgPinentry, mirroring hostSettings.rofiFont); the
-# cache TTLs are shared. Generating avoids forking the file per host (ADR-0013).
+# (single SoT hostSettings.gpgPinentry, a per-host scalar like hostSettings.theme);
+# the cache TTLs are shared. Generating avoids forking the file per host (ADR-0013).
 { pkgs, hostSettings, ... }:
 let
   pinentry = hostSettings.gpgPinentry or "/usr/bin/pinentry-kwallet";

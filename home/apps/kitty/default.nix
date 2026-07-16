@@ -10,19 +10,27 @@
 
 let
   # current-theme.conf (kitty's `include` target) is generated from the host's
-  # theme (lib/theme emitter), overlaid onto the vendored ./config dir. Only the
-  # colors are derived; kitty.conf keeps its static `include current-theme.conf`.
+  # theme (lib/theme emitter), overlaid onto the vendored ./config dir. It carries
+  # both the colors and the font (font_family/font_size) so kitty.conf keeps only
+  # its static `include current-theme.conf`.
   theme = pkgs.themeLib.resolve (hostSettings.theme or "everforest");
+  # Mono role default, overridable per host via hostSettings.appFonts.kitty.
+  kittyFont = pkgs.themeLib.fontOf theme ({ role = "mono"; } // (hostSettings.appFonts.kitty or { }));
   kittyThemeDir = pkgs.runCommandLocal "kitty-theme" { } ''
     mkdir -p "$out"
-    cp ${pkgs.writeText "current-theme.conf" (pkgs.themeLib.mkKittyTheme theme)} "$out/current-theme.conf"
+    cp ${pkgs.writeText "current-theme.conf" (pkgs.themeLib.mkKittyTheme theme kittyFont)} "$out/current-theme.conf"
   '';
 in
 {
   home = {
     # Install kitty GL-wrapped for generic-linux hosts (identity wrap on NixOS),
     # the same pattern as home/apps/browser. Replaces programs.kitty.package.
-    packages = [ (config.lib.nixGL.wrap pkgs.kitty) ];
+    # Also provision the resolved mono font (registered families only; ad-hoc
+    # ones are the user's responsibility — see docs/reference/theming.md).
+    packages = [
+      (config.lib.nixGL.wrap pkgs.kitty)
+    ]
+    ++ lib.optional (pkgs.fontPackages ? ${kittyFont.family}) pkgs.fontPackages.${kittyFont.family};
 
     # Reload running kitties after a switch (replaces programs.kitty's onChange).
     # ctrl+shift+r (load_config_file) is the manual equivalent.

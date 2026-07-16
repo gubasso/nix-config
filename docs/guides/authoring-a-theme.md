@@ -24,7 +24,10 @@ themes/<name>/
    base16 scheme's values if you're porting one.
 2. **Semantic** — map each role to a slot. Point `accent` at the theme's
    signature hue (e.g. `base0B` for a green theme, `base0E` for a purple one).
-3. **Typography** — mono + UI families, sizes, nerd-font for glyphs.
+3. **Typography** — a `families` registry (token → fontconfig family), a `sizes`
+   scale, and `roles` (`mono`/`ui`/`glyphs`) binding family+size tokens. Any
+   family an app resolves must have a matching entry in `pkgs.fontPackages`
+   (`overlays/default.nix`) to be provisioned automatically.
 4. **associatedSchemes** — list the upstream scheme *names* each app can load
    natively (nvim colorschemes, kitty built-in themes). Name references only.
 
