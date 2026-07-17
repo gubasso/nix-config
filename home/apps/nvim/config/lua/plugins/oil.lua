@@ -5,7 +5,17 @@ return {
   dependencies = { "nvim-tree/nvim-web-devicons" },
   config = function()
     local oil = require("oil")
-    require("which-key").add({ { "-", oil.open, desc = "Open parent directory" } })
+    local project_root = vim.fn.getcwd()
+    require("which-key").add({
+      { "<leader>-", oil.open, desc = "Open parent directory" },
+      {
+        "<leader>_",
+        function()
+          oil.open(project_root)
+        end,
+        desc = "Open project root",
+      },
+    })
     local always_hidden = {
       [".git"] = true,
       ["node_modules"] = true,
@@ -35,6 +45,84 @@ return {
       end
     end
 
+    -- Capped miller-columns navigation (macOS Finder / mini.files style).
+    -- H/L move between columns instead of endlessly spawning splits: L descends
+    -- (reusing a single "detail" column once the cap is hit), H ascends (closing
+    -- the tagged detail column, or plain parent nav in the leftmost oil buffer).
+    -- Generated columns are tagged with `vim.w.oil_miller` so they can be reused
+    -- and collapsed. MILLER_MAX is the number of columns to keep: 2 = the
+    -- original oil column + one reused detail column.
+    local MILLER_MAX = 2
+
+    local function oil_entry_path()
+      local entry = oil.get_cursor_entry()
+      local dir = oil.get_current_dir()
+      if not entry or not dir then
+        return nil, nil
+      end
+      return dir .. entry.name, entry
+    end
+
+    local function close_right_miller_windows(anchor)
+      close_preview_win()
+      local seen_anchor = false
+      for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+        if win == anchor then
+          seen_anchor = true
+        elseif seen_anchor and vim.api.nvim_win_is_valid(win) and vim.w[win].oil_miller then
+          pcall(vim.api.nvim_win_close, win, true)
+        end
+      end
+    end
+
+    local function miller_right()
+      local cur = vim.api.nvim_get_current_win()
+      local path, entry = oil_entry_path()
+      if not path then
+        return
+      end
+      close_right_miller_windows(cur)
+      -- CURRENT behavior: the cap counts *all* windows in the tab, not just
+      -- miller columns. This is intentional for now. Consequence: pre-existing
+      -- unrelated splits (e.g. an `:vsplit` you opened yourself) count toward the
+      -- budget, so with another split already open, L may skip creating a fresh
+      -- detail column and instead `wincmd l` into that unrelated window and open
+      -- there. Fine when oil miller nav is the only thing splitting the tab.
+      --
+      -- ALTERNATIVE (deferred): count only oil-managed (tagged) columns so
+      -- unrelated splits never affect the cap. To switch, replace the condition
+      -- below with a helper that counts tagged windows + the anchor, e.g.:
+      --   local function miller_count()
+      --     local n = 0
+      --     for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+      --       if vim.w[w].oil_miller then n = n + 1 end
+      --     end
+      --     return n + 1 -- + the original/anchor oil window
+      --   end
+      --   ... if miller_count() < MILLER_MAX then ...
+      if #vim.api.nvim_tabpage_list_wins(0) < MILLER_MAX then
+        vim.cmd("belowright vertical split")
+      else
+        vim.cmd("wincmd l")
+      end
+      vim.w.oil_miller = true
+      if entry.type == "directory" then
+        oil.open(path)
+      else
+        vim.cmd.edit(vim.fn.fnameescape(path))
+      end
+    end
+
+    local function miller_left()
+      local cur = vim.api.nvim_get_current_win()
+      if vim.w[cur].oil_miller then
+        pcall(vim.api.nvim_win_close, cur, true)
+        vim.cmd("wincmd h")
+      else
+        oil.open()
+      end
+    end
+
     oil.setup({
       keymaps = {
         -- Free Ctrl-h/l for smart-splits window navigation
@@ -46,10 +134,10 @@ return {
         ["gs"] = false, -- was: change sort (now on go)
 
         -- Directional open (mini-files-style), plus splits/tab.
-        -- L/J close the preview first (see open_split) so they don't duplicate
-        -- the file the preview is already showing; <CR> stays the full-window open.
-        ["H"] = { "actions.parent", desc = "Oil: parent dir" },
-        ["L"] = { callback = open_split({ vertical = true }), desc = "Oil: open (vsplit)" },
+        -- H/L are miller navigation; J closes the preview first (see open_split)
+        -- so it doesn't duplicate the file the preview is already showing.
+        ["H"] = { callback = miller_left, desc = "Oil: miller left / parent" },
+        ["L"] = { callback = miller_right, desc = "Oil: miller right / open" },
         ["J"] = { callback = open_split({ horizontal = true }), desc = "Oil: open (hsplit)" },
         ["K"] = { "actions.select", opts = { tab = true }, desc = "Oil: open (tab)" },
 
