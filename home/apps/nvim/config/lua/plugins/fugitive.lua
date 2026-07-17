@@ -132,10 +132,10 @@ local function open_files_in_trouble(rel_files)
   end
   vim.fn.setqflist(items, "r")
   local ok = pcall(function()
-    require("trouble").open({ mode = "qflist" })
+    require("trouble").open({ mode = "git_commit_files" })
   end)
   if not ok then
-    vim.cmd("Trouble qflist") -- fallback to the command form
+    vim.cmd("Trouble git_commit_files") -- fallback to the command form
   end
 end
 
@@ -148,6 +148,11 @@ local function open_commit_picker(sha)
   require("fzf-lua").fzf_exec("git diff-tree --no-commit-id -r --name-only " .. sha, {
     prompt = sha:sub(1, 7) .. " files> ",
     fzf_opts = { ["--multi"] = true },
+    -- ctrl-d is a picker action here (diff at commit), not list scroll. The global
+    -- keymap.fzf ctrl-d=half-page-down emits `--bind=ctrl-d:...`, which overrides
+    -- fzf's `--expect=ctrl-d` (the action) — so unbind it for this picker only.
+    -- Deep-merged with globals, so ctrl-u/ctrl-f/ctrl-b stay intact.
+    keymap = { fzf = { ["ctrl-d"] = false } },
     previewer = nvfzf.cmd_previewer(function(file)
       return "git show " .. sha .. " -- " .. vim.fn.shellescape(file)
     end, "git"),
