@@ -50,8 +50,9 @@ borders. Use any contrast checker; record the ratios in the table.
 
 ```bash
 nix eval --raw .#lib.theme.registry.<name>.meta.label
+# emitters are app-owned (ADR-0018); check the theme resolves + a color emits
 nix eval --impure --raw --expr \
-  'let f = builtins.getFlake (toString ./.); in f.lib.theme.mkRofiColors (f.lib.theme.resolve "<name>")'
+  'let f = builtins.getFlake (toString ./.); t = f.lib.theme; in t.colorOf (t.resolve "<name>") "accent"'
 just lint
 nix flake check
 ```

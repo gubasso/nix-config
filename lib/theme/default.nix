@@ -1,14 +1,16 @@
-# Theme library: the resolver + emitters over the public theme registry.
+# Theme library: the resolver + shared token algebra over the public theme
+# registry.
 #
 # A "theme" is a pure, host-agnostic Nix attrset under ../../themes/<name> (see
 # docs/reference/theming.md for the schema). Hosts select one by name via
-# `hostSettings.theme`; app modules resolve it here and call an emitter to derive
-# their native color config. Exposed to app modules as `pkgs.themeLib` (overlay)
-# and on the flake as `lib.theme`.
+# `hostSettings.theme`; app modules resolve it here and compose their own native
+# config from these primitives (each app owns its emitter under
+# home/apps/<app>/theme.nix, ADR-0018). Exposed to app modules as `pkgs.themeLib`
+# (overlay) and on the flake as `lib.theme`.
 { lib }:
 let
   fonts = import ./fonts.nix { inherit lib; };
-  emitters = import ./emitters.nix { inherit lib; };
+  colors = import ./colors.nix { inherit lib; };
   registry = import ../../themes;
 
   # name -> resolved theme attrset (throws on unknown name).
@@ -37,15 +39,16 @@ let
         + "(${lib.concatStringsSep ", " (theme.associatedSchemes.${app} or [ ])})"
       );
 in
-emitters
-# fonts re-exports fontOf / mkKittyFont / mkRofiFont / fontPackagesFor so the
-# public themeLib API is unchanged after moving them to ./fonts.nix.
+# The public themeLib is the shared token algebra only: color primitives
+# (colors.nix) + font primitives (fonts.nix) + the registry/resolver/validator.
+# App-specific string emitters live with each app under home/apps/<app>/theme.nix
+# (ADR-0018), composed from these primitives.
+colors
 // fonts
 // {
   inherit
     registry
     resolve
-    emitters
     assertAppScheme
     ;
 }

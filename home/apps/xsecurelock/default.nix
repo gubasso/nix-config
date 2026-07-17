@@ -7,11 +7,13 @@
 }:
 
 let
+  # xsecurelock owns its theme emitter (ADR-0018), built from lib/theme primitives.
+  emit = import ./theme.nix { inherit (pkgs) themeLib; };
   theme = pkgs.themeLib.resolve (hostSettings.theme or "everforest");
   # Static env body + theme-driven color lines appended at the end.
   envConf = pkgs.writeText "xsecurelock-env.conf" ''
     ${builtins.readFile ./env.conf}
-    ${pkgs.themeLib.mkXsecurelockEnv theme}
+    ${emit.mkXsecurelockEnv theme}
   '';
 in
 {

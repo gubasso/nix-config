@@ -44,8 +44,10 @@ Implemented. `lib/theme` (resolver + `fontOf` + emitters, incl. `mkRofiFont` and
 font-bearing `mkKittyTheme`), `themes/` (registry + `purple-city`, `everforest`),
 `pkgs.themeLib` + `pkgs.fontPackages` (`overlays/default.nix`), and `flake.lib.theme`;
 consumed by `home/apps/{rofi,kitty,dwm}` (kitty/rofi fonts from the SoT typography).
-The font subsystem (`fontOf`/`mkKittyFont`/`mkRofiFont`/`fontPackagesFor`) is
-factored into `lib/theme/fonts.nix`; default font tokens are shared in
-`themes/_shared/typography.nix`.
+The font subsystem (`fontOf`/`fontPackagesFor`) is factored into
+`lib/theme/fonts.nix`; default font tokens are shared in
+`themes/_shared/typography.nix`. The app-specific `mk*` emitters have since been
+relocated out of `lib/theme` into each app's `home/apps/<app>/theme.nix`, leaving
+`lib/theme` as the shared token algebra only ([ADR-0018](ADR-0018-apps-own-theme-emitters.md)).
 Schema: `docs/reference/theming.md`.
 Authoring: `docs/guides/authoring-a-theme.md`. Rationale: `docs/explanation/theming-model.md`.

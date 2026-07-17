@@ -13,12 +13,17 @@ let
   # theme (lib/theme emitter), overlaid onto the vendored ./config dir. It carries
   # both the colors and the font (font_family/font_size) so kitty.conf keeps only
   # its static `include current-theme.conf`.
+  # kitty owns its theme/font emitters (ADR-0018), built from lib/theme primitives.
+  emit = import ./theme.nix {
+    inherit lib;
+    inherit (pkgs) themeLib;
+  };
   theme = pkgs.themeLib.resolve (hostSettings.theme or "everforest");
   # Mono role default, overridable per host via hostSettings.appFonts.kitty.
   kittyFont = pkgs.themeLib.fontOf theme ({ role = "mono"; } // (hostSettings.appFonts.kitty or { }));
   kittyThemeDir = pkgs.runCommandLocal "kitty-theme" { } ''
     mkdir -p "$out"
-    cp ${pkgs.writeText "current-theme.conf" (pkgs.themeLib.mkKittyTheme theme kittyFont)} "$out/current-theme.conf"
+    cp ${pkgs.writeText "current-theme.conf" (emit.mkKittyTheme theme kittyFont)} "$out/current-theme.conf"
   '';
 in
 {

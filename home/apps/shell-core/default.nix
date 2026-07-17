@@ -10,6 +10,8 @@
 
 let
   desktop = hostSettings.desktop or "none";
+  # shell-core owns its theme emitter (ADR-0018), built from lib/theme primitives.
+  emit = import ./theme.nix { inherit (pkgs) themeLib; };
   theme = pkgs.themeLib.resolve (hostSettings.theme or "everforest");
 in
 {
@@ -137,7 +139,7 @@ in
   home.file.".inputrc".source = ./inputrc;
 
   xdg.configFile = {
-    "bash/theme-palette.bash".text = pkgs.themeLib.mkBashPalette theme;
+    "bash/theme-palette.bash".text = emit.mkBashPalette theme;
   }
   //
     lib.optionalAttrs

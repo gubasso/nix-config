@@ -1,9 +1,10 @@
-# The font subsystem of the theme library: resolver + emitters + provisioning,
-# all keyed off a theme's `typography` tokens (see themes/_shared/typography.nix).
-# Pulled into its own module so the whole font story lives in one place; the rest
-# of lib/theme (color resolve/emitters) re-exports these so the public API names
-# (`pkgs.themeLib.fontOf`, `mkKittyFont`, `mkRofiFont`, `pkgs.fontPackages`) are
-# unchanged. Pure functions of a theme attrset — no build inputs.
+# Font token algebra: the shared, app-agnostic font primitives, keyed off a
+# theme's `typography` tokens (see themes/_shared/typography.nix). Holds the
+# resolver (`fontOf`) and the family→package provisioning map (`fontPackagesFor`,
+# applied in the overlay as `pkgs.fontPackages`). App-specific font formatters
+# (kitty/rofi font strings) live with their app under home/apps/<app>/theme.nix
+# (ADR-0018). Exposed on `pkgs.themeLib` via lib/theme/default.nix. Pure functions
+# of a theme attrset — no build inputs.
 { lib }:
 rec {
   # Resolve a font request against a theme's typography registry.
@@ -70,19 +71,6 @@ rec {
       family = resolveFamily famTok;
       size = resolveSize sizeTok;
     };
-
-  # kitty font lines. Folded into mkKittyTheme (lib/theme/emitters.nix) so the
-  # font rides inside the already-generated, already-included `current-theme.conf`
-  # — no new file and no second `include` for two generators (public module +
-  # private overlay) to keep in sync. `font` is a resolved { family; size; }.
-  mkKittyFont = font: ''
-    font_family             ${font.family}
-    font_size               ${toString font.size}.0
-  '';
-
-  # rofi/pango font string ("Family Size") for programs.rofi.font. `font` is a
-  # resolved { family; size; } from fontOf.
-  mkRofiFont = font: "${font.family} ${toString font.size}";
 
   # Font family (fontconfig string) -> the nixpkgs package that provides it, as a
   # function of a package set (so this pure module can hold the map without a

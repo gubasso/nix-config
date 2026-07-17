@@ -10,11 +10,14 @@ machine-readable source of truth from which every platform's artifact is
 generated (the W3C Design Tokens Community Group format; tools like Amazon's
 Style Dictionary transform one token file into CSS, Android XML, iOS Swift, C
 headers…). We adopt the *idea* — one source, many derived outputs — but not the
-tooling: our source is a **pure Nix attrset** and our "transforms" are the pure
-functions in `lib/theme/emitters.nix`. Nix already evaluates natively at build
-time, so a JSON+transformer toolchain (Style Dictionary, matugen, pywal) would
-be pure overhead. This keeps the system dependency-free and lets a palette be
-defined once and derived into rofi, kitty, and dwm config.
+tooling: our source is a **pure Nix attrset**, `lib/theme` holds the shared
+token algebra (the resolver + color/font primitives), and each "transform" is a
+pure function **owned by the app it targets**, under `home/apps/<app>/theme.nix`
+(ADR-0018) — so no app-specific formatting lives in the shared library. Nix
+already evaluates natively at build time, so a JSON+transformer toolchain (Style
+Dictionary, matugen, pywal) would be pure overhead. This keeps the system
+dependency-free and lets a palette be defined once and derived into rofi, kitty,
+and dwm config.
 
 ## Three tiers
 

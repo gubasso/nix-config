@@ -6,6 +6,8 @@
 }:
 
 let
+  # starship owns its theme emitter (ADR-0018), built from lib/theme primitives.
+  emit = import ./theme.nix { inherit (pkgs) themeLib; };
   theme = pkgs.themeLib.resolve (hostSettings.theme or "everforest");
   # Select the generated palette and append its [palettes.theme] table. The
   # prompt's styles reference standard color names (blue/red/green/...), which
@@ -16,7 +18,7 @@ let
       palette = "theme"
       ${builtins.readFile base}
 
-      ${pkgs.themeLib.mkStarshipPalette theme}
+      ${emit.mkStarshipPalette theme}
     '';
 in
 {

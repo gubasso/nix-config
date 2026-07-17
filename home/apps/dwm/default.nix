@@ -10,10 +10,15 @@ let
   # Xresources = the static base (dpi/cursor) + the host theme's dwm color block
   # (lib/theme emitter). dwm reads these at startup via loadxrdb()
   # (dwm.{norm,sel}{bg,fg,border}color + color0..15); Mod+F5 reloads live.
+  # dwm owns its theme emitter (ADR-0018), built from lib/theme primitives.
+  emit = import ./theme.nix {
+    inherit lib;
+    inherit (pkgs) themeLib;
+  };
   theme = pkgs.themeLib.resolve (hostSettings.theme or "everforest");
   xresources = pkgs.writeText "Xresources" ''
     ${builtins.readFile ./Xresources}
-    ${pkgs.themeLib.mkDwmXresources theme}
+    ${emit.mkDwmXresources theme}
   '';
 in
 {

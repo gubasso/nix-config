@@ -12,6 +12,8 @@
 }:
 
 let
+  # rofi owns its theme/font emitters (ADR-0018), built from lib/theme primitives.
+  emit = import ./theme.nix { inherit (pkgs) themeLib; };
   theme = pkgs.themeLib.resolve (hostSettings.theme or "everforest");
   # rofi's bespoke default: IBM Plex Mono at xs (=10), overridable per host.
   rofiFont = pkgs.themeLib.fontOf theme (
@@ -22,7 +24,7 @@ let
     // (hostSettings.appFonts.rofi or { })
   );
   activeTheme = pkgs.writeText "rofi-active-theme.rasi" ''
-    ${pkgs.themeLib.mkRofiColors theme}
+    ${emit.mkRofiColors theme}
     @import "~/.config/rofi/layout.rasi"
   '';
 in
@@ -43,7 +45,7 @@ in
   # Home Manager owns config.rasi and the rofi package (single owner).
   programs.rofi = {
     enable = true;
-    font = pkgs.themeLib.mkRofiFont rofiFont;
+    font = emit.mkRofiFont rofiFont;
     modes = [
       "window"
       "drun"

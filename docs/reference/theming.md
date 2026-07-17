@@ -67,37 +67,42 @@ palette slot (directly, or via another semantic role).
 | base0F | brown |
 
 Terminal ANSI `color0..15` derive from a fixed base16 slot order (see
-`lib/theme/emitters.nix:ansiSlots`); `accent`/`success`/`info` etc. are chosen
+`lib/theme/colors.nix:ansiSlots`); `accent`/`success`/`info` etc. are chosen
 per theme via the semantic layer, so a green theme points `accent` at `base0B`
 and a purple one at `base0E`.
 
-## `lib/theme` — resolver + emitters
+## `lib/theme` — resolver + token-algebra primitives
 
 Exposed as `pkgs.themeLib` (overlay, for app modules) and `flake.lib.theme`.
+`lib/theme` holds only the **shared, app-agnostic token algebra**; the
+app-specific string formatters (the `mk*` emitters) live with each app under
+`home/apps/<app>/theme.nix` (ADR-0018), composed from these primitives.
 
-Module layout: color resolve/emitters live in `default.nix` + `emitters.nix`; the
-whole **font subsystem** (`fontOf`, `mkKittyFont`, `mkRofiFont`, and the
-`fontPackagesFor` provisioning map) lives in `lib/theme/fonts.nix` and is
-re-exported here, so the `themeLib`/`fontPackages` names below are unchanged. The
-default font tokens are shared in `themes/_shared/typography.nix` (imported by
-each theme's `typography`).
+Module layout: `default.nix` stitches the registry + `resolve` + `assertAppScheme`
+over two primitive modules — `colors.nix` (color algebra: `colorOf`, `hexToRgb`,
+`ansiSlots`) and `fonts.nix` (font algebra: `fontOf` + the `fontPackagesFor`
+provisioning map). The default font tokens are shared in
+`themes/_shared/typography.nix` (imported by each theme's `typography`).
+
+Public `pkgs.themeLib` surface:
 
 - `resolve name` → the theme attrset (throws on unknown name).
 - `colorOf theme role` → hex for a semantic role or raw slot.
+- `hexToRgb "#RRGGBB"` → `"R;G;B"` decimal (for truecolor SGR escapes).
+- `ansiSlots` → the base16 slot order backing terminal `color0..15`.
 - `fontOf theme { role?; family?; size? }` → resolved `{ family = "<string>";
   size = <int|null>; }`. `family`/`size` may be registry/scale tokens or literal
   values (a literal family string is the escape hatch); an explicit spec value
   overrides the role default. Callers layer precedence by merging attrs before the
   call: `fontOf theme (roleDefault // appDefault // hostOverride)`.
-- `mkRofiColors theme` → rofi `* { … }` color block (canonical vars: `@bg
-  @surface @overlay @muted @fg @accent @border @error @warn @success @info`).
-- `mkRofiFont font` → rofi/pango `"Family Size"` string (for `programs.rofi.font`).
-- `mkKittyTheme theme font` → kitty `current-theme.conf` body (colors **and**
-  `font_family`/`font_size`).
-- `mkDwmXresources theme` → Xresources block (`dwm.{norm,sel}{bg,fg,border}color`
-  + `color0..15`).
 - `assertAppScheme theme app scheme` → validates a host pick is in the theme's
   `associatedSchemes.<app>`; returns the scheme or throws.
+
+Per-app emitters, each in its own `home/apps/<app>/theme.nix` and built from the
+primitives above: `mkRofiColors` + `mkRofiFont` (rofi), `mkKittyTheme` +
+`mkKittyFont` (kitty), `mkDwmXresources` (dwm), `mkDunstColors` (dunst),
+`mkStarshipPalette` (starship), `mkXsecurelockEnv` (xsecurelock), `mkBashPalette`
+(shell-core). See the App consumption table below.
 
 `pkgs.fontPackages` (overlay) maps a fontconfig family string → the nixpkgs
 package that provides it (defined as `fontPackagesFor` in `lib/theme/fonts.nix`,
@@ -124,12 +129,19 @@ precedence) and resolved through `fontOf`; omit it to take the theme default.
 
 ## App consumption
 
-| App | Colors | Font | File |
-| --- | --- | --- | --- |
-| rofi | `mkRofiColors` + `@import layout.rasi` → `active-theme.rasi` | `fontOf` → `mkRofiFont` → `programs.rofi.font` | `home/apps/rofi/default.nix` |
-| kitty | `mkKittyTheme` overlaid as `current-theme.conf` (kitty.conf `include`s it) | `fontOf` (mono role) folded into the same `current-theme.conf` | `home/apps/kitty/default.nix` |
-| dwm | `mkDwmXresources` appended to `Xresources`; read by `loadxrdb` (Mod+F5 reload) | not wired (follow-up) | `home/apps/dwm/default.nix` |
-| nvim | reads `hostSettings.appSchemes.nvim` (name-ref; native plugin) | n/a | consumer repo |
+Each app owns its emitter(s) in `home/apps/<app>/theme.nix` and wires them in its
+`default.nix`, resolving colors/fonts through the `pkgs.themeLib` primitives.
+
+| App | Emitter(s) in `theme.nix` | Wired in `default.nix` as |
+| --- | --- | --- |
+| rofi | `mkRofiColors` + `mkRofiFont` | `active-theme.rasi` (+ `@import layout.rasi`) and `programs.rofi.font` |
+| kitty | `mkKittyTheme` + `mkKittyFont` (colors **and** font) | `current-theme.conf` (kitty.conf `include`s it) |
+| dwm | `mkDwmXresources` (font not wired — follow-up) | appended to `Xresources`; read by `loadxrdb` (Mod+F5 reload) |
+| dunst | `mkDunstColors` | `dunst/dunstrc.d/zzz-theme.conf` drop-in |
+| starship | `mkStarshipPalette` | `[palettes.theme]` appended to `starship.toml` |
+| xsecurelock | `mkXsecurelockEnv` | color lines appended to `env.conf` |
+| shell-core | `mkBashPalette` | `bash/theme-palette.bash` (`__UI_SGR`) |
+| nvim | — (name-ref only, native plugin) | reads `hostSettings.appSchemes.nvim` (consumer repo) |
 
 Note: the kitty/rofi fonts are wired from the SoT `typography` today (via
 `fontOf` + per-app defaults + `hostSettings.appFonts`); dwm's font is still a
