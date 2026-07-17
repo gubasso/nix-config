@@ -22,6 +22,9 @@
 --
 -- Keymaps (fugitive/git buffers):
 --   <CR>  open entry / fzf commit picker    o  open in split
+--   In the commit picker: <CR> opens the working file(s) (current state, no diff),
+--     ctrl-d the diff at the commit, ctrl-x sends the selection to a Trouble list
+--     (multi-select with <Tab>, select-all with <A-a>).
 --   q     close window                      f  commit file list (name+status)
 --   (  )  previous/next item (fugitive-native; replaced the deprecated <C-P>/<C-N>,
 --         whose nag maps we drop so <C-p> stays "Find Files" here too)
@@ -94,20 +97,93 @@ local function open_status(split)
   end
 end
 
---- Open an fzf-lua picker listing all files touched by a commit.
---- Selecting a file runs `:0Git show <sha> -- <file>` (full-window diff).
+--- Resolve a commit-picker entry (repo-relative path) to an absolute working-tree
+--- path. Returns nil if it can't resolve or the file is not readable now
+--- (deleted/renamed since the commit) — "current state" only applies to files
+--- that still exist in the working tree.
+local function resolve_worktree_file(rel)
+  local root = vim.fn.FugitiveWorkTree()
+  if root == "" then
+    root = git.first_line("git rev-parse --show-toplevel")
+  end
+  if not root or root == "" then
+    return nil
+  end
+  local abs = root .. "/" .. rel
+  if vim.fn.filereadable(abs) == 0 then
+    return nil
+  end
+  return abs
+end
+
+--- Open a list of repo-relative files (current working state) in a Trouble panel
+--- via the quickfix list. Skips files missing from the working tree.
+local function open_files_in_trouble(rel_files)
+  local items = {}
+  for _, rel in ipairs(rel_files) do
+    local abs = resolve_worktree_file(rel)
+    if abs then
+      items[#items + 1] = { filename = abs, lnum = 1, col = 1, text = rel }
+    end
+  end
+  if #items == 0 then
+    vim.notify("No selected files exist in the working tree", vim.log.levels.WARN)
+    return
+  end
+  vim.fn.setqflist(items, "r")
+  local ok = pcall(function()
+    require("trouble").open({ mode = "qflist" })
+  end)
+  if not ok then
+    vim.cmd("Trouble qflist") -- fallback to the command form
+  end
+end
+
+--- Open an fzf-lua picker listing all files touched by a commit. Multi-select is
+--- enabled (<Tab> toggles, <A-a> toggles all). Actions:
+---   <CR>    open the working file(s), current state, no diff
+---   ctrl-d  diff the highlighted file at the commit (:0Git show, full window)
+---   ctrl-x  open the selected files (current state) in a Trouble list
 local function open_commit_picker(sha)
   require("fzf-lua").fzf_exec("git diff-tree --no-commit-id -r --name-only " .. sha, {
     prompt = sha:sub(1, 7) .. " files> ",
+    fzf_opts = { ["--multi"] = true },
     previewer = nvfzf.cmd_previewer(function(file)
       return "git show " .. sha .. " -- " .. vim.fn.shellescape(file)
     end, "git"),
     actions = {
+      -- <CR>: open the working file(s), current state, no diff. The first opens
+      -- in the current window (edit); the rest load as listed buffers (badd) so
+      -- they're browsable (<leader><tab>, pickers) without stealing the window.
       ["default"] = function(selected)
+        if not selected or #selected == 0 then
+          return
+        end
+        local opened = 0
+        for _, rel in ipairs(selected) do
+          local abs = resolve_worktree_file(rel)
+          if abs then
+            vim.cmd((opened == 0 and "edit " or "badd ") .. vim.fn.fnameescape(abs))
+            opened = opened + 1
+          end
+        end
+        if opened == 0 then
+          vim.notify("Selected file(s) not in working tree", vim.log.levels.WARN)
+        end
+      end,
+      -- ctrl-d: diff of the highlighted file at this commit (previous default).
+      ["ctrl-d"] = function(selected)
         if not selected or not selected[1] then
           return
         end
         vim.cmd("0Git show " .. sha .. " -- " .. vim.fn.fnameescape(selected[1]))
+      end,
+      -- ctrl-x: open selected files (current state) in a Trouble list.
+      ["ctrl-x"] = function(selected)
+        if not selected or #selected == 0 then
+          return
+        end
+        open_files_in_trouble(selected)
       end,
     },
   })
