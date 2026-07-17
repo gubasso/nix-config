@@ -9,21 +9,27 @@ return {
           local win = vim.api.nvim_get_current_win()
           local buf = vim.api.nvim_get_current_buf()
 
-          -- 1) Delete the buffer. force=false => mini.bufremove prompts on unsaved
-          --    changes and returns falsy if declined; it also swaps the window to
-          --    an alternate/scratch buffer so Neovim never quits. Declined/invalid
-          --    => leave the layout untouched (safe path).
+          -- If this file is visible in more than one window (splits/tabs showing
+          -- the same buffer), kill ONLY this split and leave the buffer -- and
+          -- every other window showing it -- untouched. (#win_findbuf > 1
+          -- guarantees this isn't the last window, so nvim_win_close can't quit
+          -- Neovim.)
+          if #vim.fn.win_findbuf(buf) > 1 then
+            pcall(vim.api.nvim_win_close, win, false)
+            return
+          end
+
+          -- This is the buffer's only view: delete it (safe -- force=false prompts
+          -- on unsaved changes and returns falsy if declined; declined/invalid =>
+          -- leave the layout untouched), then close its split. Since no other
+          -- window shows this buffer, nothing else is disturbed. nvim_win_close
+          -- errors only on the last window of the last tab -- pcall swallows that
+          -- so Neovim stays open showing the alternate buffer instead of quitting.
+          -- Closing the sole window of a non-last tab closes that tab.
           local ok, removed = pcall(bufremove.delete, buf, false)
           if not (ok and removed) then
             return
           end
-
-          -- 2) Close the window the buffer lived in, so the split (or a
-          --    single-window tab) goes away too. nvim_win_close errors only on the
-          --    last window of the last tabpage ("cannot close last window") --
-          --    pcall swallows that so the final editor window stays open showing
-          --    the alternate buffer instead of quitting Neovim. Closing the sole
-          --    window of a non-last tab closes that tab.
           if vim.api.nvim_win_is_valid(win) then
             pcall(vim.api.nvim_win_close, win, false)
           end
