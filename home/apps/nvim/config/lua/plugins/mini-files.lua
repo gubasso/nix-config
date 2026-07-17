@@ -1,7 +1,12 @@
 return {
   "echasnovski/mini.files",
   opts = {
-    windows = { preview = true },
+    windows = {
+      preview = true,
+      width_focus = 80,
+      width_nofocus = 20,
+      width_preview = 80,
+    },
     mappings = {
       go_in = "L",
       go_in_plus = "",
@@ -68,12 +73,12 @@ return {
 
         -- mini.files dir buffers are scratch buffers (buftype=nofile), which Vim
         -- refuses to write -> :w errors E382 *before* any BufWriteCmd can fire.
-        -- Switch to "acwrite" (same as oil.nvim) so :w is routed through our
+        -- Switch to "acwrite" so :w is routed through our
         -- BufWriteCmd below. bufhidden stays "hide", so column navigation and :q
         -- never trigger an unsaved-changes (E37) prompt.
         vim.bo[buf_id].buftype = "acwrite"
 
-        -- oil-like :w -> synchronize pending fs edits (native confirm shows only
+        -- Editor-style :w -> synchronize pending fs edits (native confirm shows only
         -- if pending). Buffer is named minifiles://..., so BufWriteCmd is the
         -- disk-safe way to intercept :w.
         vim.api.nvim_create_autocmd("BufWriteCmd", {
@@ -104,7 +109,7 @@ return {
           end,
         })
 
-        -- oil-like quit:
+        -- Editor-style quit:
         --   :q  -> resolve pending changes (native save/discard/cancel prompt),
         --          then close the whole explorer at once.
         --   :q! -> skip the save prompt and fall through to mini.files' own

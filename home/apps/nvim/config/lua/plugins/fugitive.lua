@@ -803,7 +803,7 @@ return {
           return
         end
         -- 2. Any file/dir arg (`nvim <file>`, `nvim .`, git's COMMIT_EDITMSG,
-        --    rebase-todo) -> leave alone. `nvim .` stays on oil.
+        --    rebase-todo) -> leave alone. `nvim .` is handled by yazi.
         if vim.fn.argc() > 0 then
           return
         end
