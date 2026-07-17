@@ -75,6 +75,13 @@ and a purple one at `base0E`.
 
 Exposed as `pkgs.themeLib` (overlay, for app modules) and `flake.lib.theme`.
 
+Module layout: color resolve/emitters live in `default.nix` + `emitters.nix`; the
+whole **font subsystem** (`fontOf`, `mkKittyFont`, `mkRofiFont`, and the
+`fontPackagesFor` provisioning map) lives in `lib/theme/fonts.nix` and is
+re-exported here, so the `themeLib`/`fontPackages` names below are unchanged. The
+default font tokens are shared in `themes/_shared/typography.nix` (imported by
+each theme's `typography`).
+
 - `resolve name` → the theme attrset (throws on unknown name).
 - `colorOf theme role` → hex for a semantic role or raw slot.
 - `fontOf theme { role?; family?; size? }` → resolved `{ family = "<string>";
@@ -93,9 +100,10 @@ Exposed as `pkgs.themeLib` (overlay, for app modules) and `flake.lib.theme`.
   `associatedSchemes.<app>`; returns the scheme or throws.
 
 `pkgs.fontPackages` (overlay) maps a fontconfig family string → the nixpkgs
-package that provides it; an app module installs the package for the font it
-resolves, so a registered "official" family is provisioned on every host. Ad-hoc
-(unregistered) families install nothing — the user provisions those.
+package that provides it (defined as `fontPackagesFor` in `lib/theme/fonts.nix`,
+applied to the package set in the overlay); an app module installs the package for
+the font it resolves, so a registered "official" family is provisioned on every
+host. Ad-hoc (unregistered) families install nothing — the user provisions those.
 
 ## Host selection
 

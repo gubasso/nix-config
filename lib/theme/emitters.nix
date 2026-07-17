@@ -2,6 +2,11 @@
 # format. This is the Nix-native equivalent of a design-token transform pipeline
 # (one SoT → many outputs) with zero external tooling. See docs/reference/theming.md.
 { lib }:
+let
+  # Font resolver + font emitters live in the font subsystem; mkKittyTheme folds
+  # the kitty font block in via fonts.mkKittyFont.
+  fonts = import ./fonts.nix { inherit lib; };
+in
 rec {
   # base16 slot order for terminal ANSI color0..color15 (the canonical
   # base16 → 16-color-terminal mapping used by kitty and dwm alike).
@@ -66,15 +71,6 @@ rec {
     in
     "${toString (pair 0)};${toString (pair 2)};${toString (pair 4)}";
 
-  # kitty font lines. Folded into mkKittyTheme (below) so the font rides inside
-  # the already-generated, already-included `current-theme.conf` — no new file
-  # and no second `include` for two generators (public module + private overlay)
-  # to keep in sync. `font` is a resolved { family; size; } from themeLib.fontOf.
-  mkKittyFont = font: ''
-    font_family             ${font.family}
-    font_size               ${toString font.size}.0
-  '';
-
   # kitty color theme + font (the `current-theme.conf` include target). Takes the
   # resolved font so both kitty call sites emit it via this one shared function.
   mkKittyTheme =
@@ -85,7 +81,7 @@ rec {
     in
     ''
       # Generated from theme "${theme.meta.name}" by nix-config lib/theme. Do not edit.
-      ${mkKittyFont font}
+      ${fonts.mkKittyFont font}
       foreground              ${c "fg"}
       background              ${c "bg"}
       selection_foreground    ${c "bg"}
@@ -102,10 +98,6 @@ rec {
       tab_bar_background       ${c "bg"}
       ${lib.concatStringsSep "\n" ansi}
     '';
-
-  # rofi/pango font string ("Family Size") for programs.rofi.font. `font` is a
-  # resolved { family; size; } from themeLib.fontOf.
-  mkRofiFont = font: "${font.family} ${toString font.size}";
 
   # rofi color block. Consumed by the shared layout (home/apps/rofi/layout.rasi)
   # which references these canonical variable names.

@@ -44,5 +44,8 @@ Implemented. `lib/theme` (resolver + `fontOf` + emitters, incl. `mkRofiFont` and
 font-bearing `mkKittyTheme`), `themes/` (registry + `purple-city`, `everforest`),
 `pkgs.themeLib` + `pkgs.fontPackages` (`overlays/default.nix`), and `flake.lib.theme`;
 consumed by `home/apps/{rofi,kitty,dwm}` (kitty/rofi fonts from the SoT typography).
+The font subsystem (`fontOf`/`mkKittyFont`/`mkRofiFont`/`fontPackagesFor`) is
+factored into `lib/theme/fonts.nix`; default font tokens are shared in
+`themes/_shared/typography.nix`.
 Schema: `docs/reference/theming.md`.
 Authoring: `docs/guides/authoring-a-theme.md`. Rationale: `docs/explanation/theming-model.md`.

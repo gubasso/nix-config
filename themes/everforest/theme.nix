@@ -45,44 +45,10 @@
     info = "base0D";
   };
 
-  # Typography SoT (design tokens). `families` is the registry of "official"
-  # fonts (token -> fontconfig family string); `sizes` a named scale; `roles`
-  # bind a semantic role to a family+size token. Apps resolve via themeLib.fontOf
-  # against a role and/or their own family/size, and hosts override per app via
-  # `hostSettings.appFonts.<app>`. Schema: docs/reference/theming.md.
-  typography = {
-    families = {
-      hack = "Hack";
-      inter = "Inter";
-      ibmplex = "IBM Plex Mono";
-      symbols = "Symbols Nerd Font";
-    };
-    sizes = {
-      xs = 10;
-      sm = 11;
-      md = 13;
-      lg = 15;
-      xl = 17;
-    };
-    roles = {
-      mono = {
-        family = "hack";
-        size = "xl";
-      };
-      ui = {
-        family = "inter";
-        size = "sm";
-      };
-      glyphs = {
-        family = "symbols";
-      };
-    };
-    weights = {
-      regular = 400;
-      medium = 500;
-      bold = 700;
-    };
-  };
+  # Typography SoT (design tokens): the shared default font set. Spread-and-
+  # override (`// { ... }`) or inline a bespoke block to diverge. See
+  # themes/_shared/typography.nix and docs/reference/theming.md.
+  typography = import ../_shared/typography.nix;
 
   # X cursor theme + size (fed to XCURSOR_THEME/XCURSOR_SIZE by
   # modules/home/env-shell.nix). Dark themes use the classic (dark) Bibata.

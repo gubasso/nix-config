@@ -16,18 +16,14 @@ _final: prev: {
   # a theme attrset — no build inputs. See lib/theme and docs/reference/theming.md.
   themeLib = import ../lib/theme { inherit (prev) lib; };
 
-  # Font family (fontconfig string) -> the nixpkgs package that provides it. An
-  # app module installs the package for the font it resolves via themeLib.fontOf,
-  # so a named "official" font (themes/*/theme.nix `typography.families`) is
-  # guaranteed present on every host. Ad-hoc / unregistered families install
-  # nothing — the user provisions those. Keyed by the resolved family STRING so
-  # both token-resolved and literal families match. See docs/reference/theming.md.
-  fontPackages = {
-    "Hack" = prev.nerd-fonts.hack;
-    "IBM Plex Mono" = prev.ibm-plex;
-    "Inter" = prev.inter;
-    "Symbols Nerd Font" = prev.nerd-fonts.symbols-only;
-  };
+  # Font family (fontconfig string) -> the nixpkgs package that provides it. The
+  # map is defined next to the resolver (lib/theme/fonts.nix `fontPackagesFor`) as
+  # a function of a package set; applied here to `prev`. An app module installs
+  # the package for the font it resolves via themeLib.fontOf, so a named
+  # "official" font (themes typography.families) is guaranteed present on every
+  # host. Ad-hoc / unregistered families install nothing — the user provisions
+  # those. Keyed by the resolved family STRING. See docs/reference/theming.md.
+  fontPackages = (import ../lib/theme/fonts.nix { inherit (prev) lib; }).fontPackagesFor prev;
 
   # Assemble a config directory as REAL files inside a single store path, so it
   # can be deployed as ONE whole-directory symlink (like ~/.config/nvim) rather
