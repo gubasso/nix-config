@@ -45,6 +45,8 @@ in
     SUDO_EDITOR = "nvim";
     SYSTEMD_EDITOR = "nvim";
     PROJECTS = "${config.home.homeDirectory}/Projects";
+    TODO = "${config.home.homeDirectory}/Todo";
+    NOTES = "${config.home.homeDirectory}/Notes";
     XCURSOR_THEME = theme.cursor.theme;
     XCURSOR_SIZE = toString theme.cursor.size;
     SSH_AUTH_SOCK = "\${XDG_RUNTIME_DIR}/ssh-agent.socket";
