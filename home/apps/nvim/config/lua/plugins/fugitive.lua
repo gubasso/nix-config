@@ -23,7 +23,7 @@
 -- Keymaps (fugitive/git buffers):
 --   <CR>  open entry / fzf commit picker    o  open in split
 --   In the commit picker: <CR> opens the working file(s) (current state, no diff),
---     ctrl-d the diff at the commit, ctrl-x sends the selection to a Trouble list
+--     ctrl-y the diff at the commit, ctrl-x sends the selection to a Trouble list
 --     (multi-select with <Tab>, select-all with <A-a>).
 --   q     close window                      f  commit file list (name+status)
 --   (  )  previous/next item (fugitive-native; replaced the deprecated <C-P>/<C-N>,
@@ -142,17 +142,12 @@ end
 --- Open an fzf-lua picker listing all files touched by a commit. Multi-select is
 --- enabled (<Tab> toggles, <A-a> toggles all). Actions:
 ---   <CR>    open the working file(s), current state, no diff
----   ctrl-d  diff the highlighted file at the commit (:0Git show, full window)
+---   ctrl-y  diff the highlighted file at the commit (:0Git show, full window)
 ---   ctrl-x  open the selected files (current state) in a Trouble list
 local function open_commit_picker(sha)
   require("fzf-lua").fzf_exec("git diff-tree --no-commit-id -r --name-only " .. sha, {
     prompt = sha:sub(1, 7) .. " files> ",
     fzf_opts = { ["--multi"] = true },
-    -- ctrl-d is a picker action here (diff at commit), not list scroll. The global
-    -- keymap.fzf ctrl-d=half-page-down emits `--bind=ctrl-d:...`, which overrides
-    -- fzf's `--expect=ctrl-d` (the action) — so unbind it for this picker only.
-    -- Deep-merged with globals, so ctrl-u/ctrl-f/ctrl-b stay intact.
-    keymap = { fzf = { ["ctrl-d"] = false } },
     previewer = nvfzf.cmd_previewer(function(file)
       return "git show " .. sha .. " -- " .. vim.fn.shellescape(file)
     end, "git"),
@@ -176,8 +171,11 @@ local function open_commit_picker(sha)
           vim.notify("Selected file(s) not in working tree", vim.log.levels.WARN)
         end
       end,
-      -- ctrl-d: diff of the highlighted file at this commit (previous default).
-      ["ctrl-d"] = function(selected)
+      -- ctrl-y: diff of the highlighted file at this commit (previous default).
+      -- NOT ctrl-d: the global keymap.fzf binds ctrl-d=half-page-down, which fzf-lua
+      -- emits as an fzf `--bind`; that scroll bind wins over a same-key action, so a
+      -- ctrl-d action never fires here. ctrl-y is unbound globally, so it's clean.
+      ["ctrl-y"] = function(selected)
         if not selected or not selected[1] then
           return
         end
