@@ -3,9 +3,6 @@ return {
   opts = {
     windows = {
       preview = true,
-      width_focus = 80,
-      width_nofocus = 20,
-      width_preview = 80,
     },
     mappings = {
       go_in = "L",
