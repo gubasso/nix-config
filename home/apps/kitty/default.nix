@@ -21,6 +21,10 @@ let
   theme = pkgs.themeLib.resolve (hostSettings.theme or "everforest");
   # Mono role default, overridable per host via hostSettings.appFonts.kitty.
   kittyFont = pkgs.themeLib.fontOf theme ({ role = "mono"; } // (hostSettings.appFonts.kitty or { }));
+  # Symbols Nerd Font (theme `glyphs` role) is installed unconditionally so a
+  # non-Nerd primary font (e.g. IBM Plex Mono) still renders icon glyphs via the
+  # kitty.conf symbol_map. Harmless when the primary font is itself a Nerd Font.
+  glyphFont = pkgs.themeLib.fontOf theme { role = "glyphs"; };
   kittyThemeDir = pkgs.runCommandLocal "kitty-theme" { } ''
     mkdir -p "$out"
     cp ${pkgs.writeText "current-theme.conf" (emit.mkKittyTheme theme kittyFont)} "$out/current-theme.conf"
@@ -35,7 +39,8 @@ in
     packages = [
       (config.lib.nixGL.wrap pkgs.kitty)
     ]
-    ++ lib.optional (pkgs.fontPackages ? ${kittyFont.family}) pkgs.fontPackages.${kittyFont.family};
+    ++ lib.optional (pkgs.fontPackages ? ${kittyFont.family}) pkgs.fontPackages.${kittyFont.family}
+    ++ lib.optional (pkgs.fontPackages ? ${glyphFont.family}) pkgs.fontPackages.${glyphFont.family};
 
     # Reload running kitties after a switch (replaces programs.kitty's onChange).
     # ctrl+shift+r (load_config_file) is the manual equivalent.

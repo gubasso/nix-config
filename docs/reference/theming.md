@@ -110,6 +110,14 @@ applied to the package set in the overlay); an app module installs the package f
 the font it resolves, so a registered "official" family is provisioned on every
 host. Ad-hoc (unregistered) families install nothing — the user provisions those.
 
+**Icon glyphs.** The kitty module additionally installs the theme `glyphs` role
+font (`Symbols Nerd Font` → `nerd-fonts.symbols-only`) on **every** host,
+regardless of the primary font, and `home/apps/kitty/config/kitty.conf` pins the
+Nerd Font private-use ranges to `Symbols Nerd Font Mono` via `symbol_map` (ranges
+track Nerd Fonts v3.4.0, per the kitty FAQ). This guarantees Neovim/CLI devicons
+render even when the primary font is not a Nerd Font (e.g. IBM Plex Mono on
+tumblesuse) — no per-host font juggling required.
+
 ## Host selection
 
 ```nix
