@@ -22,9 +22,11 @@
 --
 -- Keymaps (fugitive/git buffers):
 --   <CR>  open entry / fzf commit picker    o  open in split
---   In the commit picker: <CR> opens the working file(s) (current state, no diff),
---     ctrl-y the diff at the commit, ctrl-x sends the selection to a Trouble list
---     (multi-select with <Tab>, select-all with <A-a>).
+--   In the commit picker (multi-select <Tab>, select-all <A-a>; all actions act on
+--     the whole selection): <CR>/ctrl-q open the selected files' current working
+--     version as a flat Trouble list, ctrl-y opens them in diff format (patch at the
+--     commit) as a flat Trouble list, ctrl-o opens a two-way diff split per file
+--     (working vs commit, one per tab).
 --   q     close window                      f  commit file list (name+status)
 --   (  )  previous/next item (fugitive-native; replaced the deprecated <C-P>/<C-N>,
 --         whose nag maps we drop so <C-p> stays "Find Files" here too)
@@ -139,12 +141,81 @@ local function open_files_in_trouble(rel_files)
   end
 end
 
+--- Resolve a repo-relative path to an absolute path under the work tree WITHOUT
+--- requiring the file to still exist (a diff at a commit is valid even for files
+--- deleted since). Returns nil only if the work-tree root can't be resolved.
+local function abs_worktree_path(rel)
+  local root = vim.fn.FugitiveWorkTree()
+  if root == "" then
+    root = git.first_line("git rev-parse --show-toplevel")
+  end
+  if not root or root == "" then
+    return nil
+  end
+  return root .. "/" .. rel
+end
+
+--- Open a list of repo-relative files as a flat Trouble list where selecting an
+--- entry shows THAT file's patch at `sha` (diff format), via the git_commit_diffs
+--- mode. The commit is stashed in vim.g so the mode's <CR>/o actions can reach it.
+local function open_commit_diffs_in_trouble(sha, rel_files)
+  local items = {}
+  for _, rel in ipairs(rel_files) do
+    local abs = abs_worktree_path(rel)
+    if abs then
+      items[#items + 1] = { filename = abs, lnum = 1, col = 1, text = rel }
+    end
+  end
+  if #items == 0 then
+    vim.notify("No files to diff", vim.log.levels.WARN)
+    return
+  end
+  vim.g.git_commit_diff_sha = sha
+  vim.fn.setqflist(items, "r")
+  local ok = pcall(function()
+    require("trouble").open({ mode = "git_commit_diffs" })
+  end)
+  if not ok then
+    vim.cmd("Trouble git_commit_diffs") -- fallback to the command form
+  end
+end
+
+--- Open a two-way fugitive diff split (:Gdiffsplit <sha>) for each selected file:
+--- working file vs its version at the commit. First lands in the current window,
+--- the rest each open in their own tab so multiple diffs stay browsable.
+local function open_commit_diffsplits(sha, rel_files)
+  local first = true
+  local opened = 0
+  for _, rel in ipairs(rel_files) do
+    local abs = resolve_worktree_file(rel)
+    if abs then
+      vim.cmd((first and "edit " or "tabedit ") .. vim.fn.fnameescape(abs))
+      vim.cmd("Gdiffsplit " .. sha)
+      first = false
+      opened = opened + 1
+    end
+  end
+  if opened == 0 then
+    vim.notify("Selected file(s) not in working tree", vim.log.levels.WARN)
+  end
+end
+
 --- Open an fzf-lua picker listing all files touched by a commit. Multi-select is
---- enabled (<Tab> toggles, <A-a> toggles all). Actions:
----   <CR>    open the working file(s), current state, no diff
----   ctrl-y  diff the highlighted file at the commit (:0Git show, full window)
----   ctrl-x  open the selected files (current state) in a Trouble list
+--- enabled (<Tab> toggles, <A-a> toggles all). Every action operates on the whole
+--- selection. Actions:
+---   <CR> / ctrl-q  selected files, CURRENT working version, as a flat Trouble list
+---   ctrl-y         selected files in DIFF format (patch at the commit), flat Trouble
+---   ctrl-o         two-way diff split per file (working vs commit), one per tab
 local function open_commit_picker(sha)
+  --- <CR>/ctrl-q: the selected files' current working version, as a flat Trouble
+  --- list (git_commit_files mode). Skips files missing from the working tree.
+  local function open_current(selected)
+    if not selected or #selected == 0 then
+      return
+    end
+    open_files_in_trouble(selected)
+  end
+
   require("fzf-lua").fzf_exec("git diff-tree --no-commit-id -r --name-only " .. sha, {
     prompt = sha:sub(1, 7) .. " files> ",
     fzf_opts = { ["--multi"] = true },
@@ -152,41 +223,26 @@ local function open_commit_picker(sha)
       return "git show " .. sha .. " -- " .. vim.fn.shellescape(file)
     end, "git"),
     actions = {
-      -- <CR>: open the working file(s), current state, no diff. The first opens
-      -- in the current window (edit); the rest load as listed buffers (badd) so
-      -- they're browsable (<leader><tab>, pickers) without stealing the window.
-      ["default"] = function(selected)
-        if not selected or #selected == 0 then
-          return
-        end
-        local opened = 0
-        for _, rel in ipairs(selected) do
-          local abs = resolve_worktree_file(rel)
-          if abs then
-            vim.cmd((opened == 0 and "edit " or "badd ") .. vim.fn.fnameescape(abs))
-            opened = opened + 1
-          end
-        end
-        if opened == 0 then
-          vim.notify("Selected file(s) not in working tree", vim.log.levels.WARN)
-        end
-      end,
-      -- ctrl-y: diff of the highlighted file at this commit (previous default).
+      -- <CR> and ctrl-q both open the current working version as a flat Trouble list.
+      ["default"] = open_current,
+      ["ctrl-q"] = open_current,
+      -- ctrl-y: the selected files in DIFF format (each entry shows its patch at
+      -- the commit) as a flat Trouble list.
       -- NOT ctrl-d: the global keymap.fzf binds ctrl-d=half-page-down, which fzf-lua
       -- emits as an fzf `--bind`; that scroll bind wins over a same-key action, so a
-      -- ctrl-d action never fires here. ctrl-y is unbound globally, so it's clean.
+      -- ctrl-d action never fires here. ctrl-y/ctrl-o are unbound globally, so clean.
       ["ctrl-y"] = function(selected)
-        if not selected or not selected[1] then
-          return
-        end
-        vim.cmd("0Git show " .. sha .. " -- " .. vim.fn.fnameescape(selected[1]))
-      end,
-      -- ctrl-x: open selected files (current state) in a Trouble list.
-      ["ctrl-x"] = function(selected)
         if not selected or #selected == 0 then
           return
         end
-        open_files_in_trouble(selected)
+        open_commit_diffs_in_trouble(sha, selected)
+      end,
+      -- ctrl-o: two-way diff split (working vs commit) per selected file, one per tab.
+      ["ctrl-o"] = function(selected)
+        if not selected or #selected == 0 then
+          return
+        end
+        open_commit_diffsplits(sha, selected)
       end,
     },
   })

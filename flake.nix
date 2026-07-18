@@ -34,6 +34,22 @@
       url = "github:gubasso/dwm/rice";
       flake = false;
     };
+
+    # Yazi TUI plugins, consumed declaratively by programs.yazi in
+    # home/apps/yazi. Public plugin sources (no private data): the official
+    # monorepo plus two third-party plugins.
+    yazi-plugins = {
+      url = "github:yazi-rs/plugins";
+      flake = false;
+    };
+    ouch-yazi = {
+      url = "github:ndtoan96/ouch.yazi";
+      flake = false;
+    };
+    mediainfo-yazi = {
+      url = "github:boydaihungst/mediainfo.yazi";
+      flake = false;
+    };
   };
 
   outputs =
