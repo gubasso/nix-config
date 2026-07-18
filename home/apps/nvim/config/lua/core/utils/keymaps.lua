@@ -81,4 +81,37 @@ function M.diagnostic_goto(next, severity)
   end
 end
 
+-- Window zoom (kitty-style): toggle current split to a fullscreen tab and back.
+-- Uses a transient tab page so the original layout is restored perfectly.
+local zoom_saved_tabline, zoom_saved_showtabline
+local ZOOM_TABLINE = "%=%#TabLineSel# [Z] %*%=" -- centered marker
+
+local function zoom_refresh_tabline()
+  if vim.t.zoomed then
+    vim.o.showtabline = 2
+    vim.o.tabline = ZOOM_TABLINE
+  else
+    vim.o.tabline = zoom_saved_tabline or ""
+    vim.o.showtabline = zoom_saved_showtabline or 1
+  end
+end
+
+function M.toggle_window_zoom()
+  if vim.t.zoomed then
+    local view = vim.fn.winsaveview()
+    vim.cmd("tabclose") -- back to the untouched original layout
+    vim.fn.winrestview(view) -- carry cursor/scroll back
+  else
+    zoom_saved_tabline = vim.o.tabline
+    zoom_saved_showtabline = vim.o.showtabline
+    vim.cmd("tab split") -- current buffer alone, fullscreen, new tab
+    vim.t.zoomed = true -- tab-local flag on the NEW tab
+  end
+  zoom_refresh_tabline()
+end
+
+-- Safety net: if the zoom tab is closed by any other means, entering a
+-- non-zoom tab restores the normal tabline instead of leaving [Z] stuck.
+vim.api.nvim_create_autocmd("TabEnter", { callback = zoom_refresh_tabline })
+
 return M

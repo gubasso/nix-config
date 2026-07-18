@@ -49,6 +49,9 @@ map("n", "<C-Down>", "<cmd>resize -2<cr>", { desc = "Decrease window height" })
 map("n", "<C-Left>", "<cmd>vertical resize -2<cr>", { desc = "Decrease window width" })
 map("n", "<C-Right>", "<cmd>vertical resize +2<cr>", { desc = "Increase window width" })
 
+-- Window zoom (toggle current split fullscreen, kitty-style)
+map("n", "gz", keymaps.toggle_window_zoom, { desc = "Zoom: toggle window fullscreen" })
+
 -- Move lines (normal)
 map("n", "<A-j>", "<cmd>m .+1<cr>==", { desc = "Move line down" })
 map("n", "<A-k>", "<cmd>m .-2<cr>==", { desc = "Move line up" })
