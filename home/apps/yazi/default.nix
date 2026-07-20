@@ -50,6 +50,10 @@ in
 
     # yazi.toml: fetchers (git status column) + previewers/preloaders (ouch, mediainfo).
     settings = {
+      # Show dotfiles/hidden files by default (`.` still toggles at runtime).
+      mgr = {
+        show_hidden = true;
+      };
       plugin = {
         # yazi >= v26.1.23 fetcher schema: `url` glob (not `name`), a required
         # `group` (only the first matching fetcher in a group runs), no `id`.
@@ -134,8 +138,21 @@ in
         }
         {
           on = "l";
-          run = "plugin smart-enter";
-          desc = "Enter dir or open file";
+          run = "enter";
+          desc = "Enter directory";
+        }
+        {
+          on = "?";
+          run = "help";
+          desc = "Open help";
+        }
+        {
+          on = [
+            "g"
+            "?"
+          ];
+          run = "help";
+          desc = "Open help";
         }
       ];
     };
