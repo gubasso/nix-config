@@ -51,16 +51,18 @@ in
     # yazi.toml: fetchers (git status column) + previewers/preloaders (ouch, mediainfo).
     settings = {
       plugin = {
+        # yazi >= v26.1.23 fetcher schema: `url` glob (not `name`), a required
+        # `group` (only the first matching fetcher in a group runs), no `id`.
         prepend_fetchers = [
           {
-            id = "git";
-            name = "*";
+            url = "*";
             run = "git";
+            group = "git";
           }
           {
-            id = "git";
-            name = "*/";
+            url = "*/";
             run = "git";
+            group = "git";
           }
         ];
         prepend_previewers = [
@@ -70,7 +72,7 @@ in
             run = "ouch";
           }
           {
-            name = "*.{zip,rar,7z,tar,gz,tgz,bz2,xz,zst}";
+            url = "*.{zip,rar,7z,tar,gz,tgz,bz2,xz,zst}";
             run = "ouch";
           }
           # mediainfo.yazi: audio/video metadata. Scoped to audio+video only so
