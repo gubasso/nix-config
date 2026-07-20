@@ -24,9 +24,20 @@ return {
   opts = {
     open_for_directories = true, -- replace netrw/oil: `nvim <dir>` opens yazi
     integrations = {
-      -- Point the built-in grep at fzf-lua (this config's picker; no telescope).
-      grep_in_directory = "fzf-lua",
-      grep_in_selected_files = "fzf-lua",
+      -- Use grep_project (ripgrep once, then fzf fuzzy-filter) instead of
+      -- yazi.nvim's built-in "fzf-lua" backend (which calls live_grep =
+      -- per-keystroke rg regex, no fuzzy). This makes <c-s> fuzzy-match like this
+      -- config's <leader>/ does (e.g. "chtoo" -> "Check tools..."), inheriting the
+      -- global `grep` table (rg_opts, --nth, <c-i> live-toggle). Signatures per
+      -- yazi.nvim types.lua:
+      --   grep_in_directory(directory: string)
+      --   grep_in_selected_files(selected_files: Path[], relative_paths: string[])
+      grep_in_directory = function(directory)
+        require("fzf-lua").grep_project({ search_paths = { directory } })
+      end,
+      grep_in_selected_files = function(_selected_files, relative_paths)
+        require("fzf-lua").grep_project({ search_paths = relative_paths })
+      end,
       -- replace_* left at defaults: they require("grug-far"), now a dependency.
     },
     hooks = {
