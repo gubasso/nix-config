@@ -73,6 +73,7 @@ inputs.nixpkgs.lib.nixosSystem {
     ../modules/system/audio.nix
     ../modules/system/network.nix
     ../modules/system/session
+    ../modules/system/xdg-portal.nix
     ../modules/vm.nix
 
     inputs.disko.nixosModules.disko

@@ -81,6 +81,7 @@
         system-secrets = ./modules/system/secrets.nix;
         system-session = ./modules/system/session;
         system-users = ./modules/system/users.nix;
+        system-xdg-portal = ./modules/system/xdg-portal.nix;
         vm = ./modules/vm.nix;
       };
 
