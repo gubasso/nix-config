@@ -87,6 +87,8 @@
     pkg = p: p.ocr-a;
   };
   # modern lo-fi pixel/OCR
+  # ★ BEST PICK #1 (aesthetic champion): vector font that nails the OCR/pixel
+  #   hacker look yet stays easy on the eyes for long sessions — scales smoothly.
   departure-mono = {
     family = "DepartureMono Nerd Font";
     pkg = p: p.nerd-fonts.departure-mono;
@@ -112,6 +114,8 @@
     pkg = p: p.nerd-fonts.fantasque-sans-mono;
   };
   # narrow terminal-tuned
+  # ★ BEST PICK #3 (most versatile): slender, highly legible, endlessly tunable
+  #   retro-terminal vector font — fits more code per line, gentle on the eyes.
   iosevka-term = {
     family = "IosevkaTerm Nerd Font";
     pkg = p: p.nerd-fonts.iosevka-term;
@@ -122,6 +126,8 @@
     pkg = p: p.comic-mono;
   };
   # GitHub superfamily, Krypton face
+  # ★ BEST PICK #2 (best balance): mechanical-technical vibe with "texture
+  #   healing" that rebalances narrow glyphs — cool + comfortable for long reads.
   monaspace-krypton = {
     family = "MonaspiceKr Nerd Font";
     pkg = p: p.nerd-fonts.monaspace;
