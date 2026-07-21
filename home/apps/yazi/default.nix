@@ -16,6 +16,11 @@ in
   programs.yazi = {
     enable = true;
 
+    # Launch-and-cd shell wrapper. Pinned explicitly so it doesn't depend on
+    # home.stateVersion: HM's default moved from "yy" to "y" at stateVersion
+    # 26.05, and pinning silences the transition warning on older stateVersions.
+    shellWrapperName = "y";
+
     # Wrap yazi with the plugin CLI dependencies on its private PATH:
     #   ouch      -> ouch.yazi (archive create/preview)
     #   mediainfo -> mediainfo.yazi (audio/video metadata previews)
