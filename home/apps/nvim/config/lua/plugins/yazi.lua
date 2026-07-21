@@ -23,6 +23,16 @@ return {
   },
   opts = {
     open_for_directories = true, -- replace netrw/oil: `nvim <dir>` opens yazi
+    -- Rebind the file-openers off <c-v>/<c-x>/<c-t> onto Alt combos. yazi.nvim
+    -- installs these as terminal-mode maps on its buffer, so the defaults hijack
+    -- keys before an embedded $EDITOR (bulk rename `r`) sees them -- <c-v> would
+    -- exit to the outer nvim instead of visual-block. Alt combos are free during
+    -- rename editing. Mnemonics mirror vim's <c-w>v / <c-w>s / <c-w>t.
+    keymaps = {
+      open_file_in_vertical_split = "<M-v>",
+      open_file_in_horizontal_split = "<M-s>",
+      open_file_in_tab = "<M-t>",
+    },
     integrations = {
       -- Use grep_project (ripgrep once, then fzf fuzzy-filter) instead of
       -- yazi.nvim's built-in "fzf-lua" backend (which calls live_grep =
