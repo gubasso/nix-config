@@ -159,6 +159,46 @@ in
           run = "help";
           desc = "Open help";
         }
+        {
+          on = [
+            "g"
+            "d"
+          ];
+          run = "cd ~/Downloads";
+          desc = "Go to Downloads";
+        }
+        {
+          on = [
+            "g"
+            "p"
+          ];
+          run = "cd ~/Projects";
+          desc = "Go to Projects";
+        }
+        {
+          on = [
+            "g"
+            "h"
+          ];
+          run = "cd ~";
+          desc = "Go to Home (~)";
+        }
+        {
+          on = [
+            "g"
+            "n"
+          ];
+          run = "cd ~/Nextcloud";
+          desc = "Go to Nextcloud";
+        }
+        {
+          on = [
+            "g"
+            "t"
+          ];
+          run = "cd ~/.local/share/Trash/files";
+          desc = "Go to Trash";
+        }
       ];
     };
   };
