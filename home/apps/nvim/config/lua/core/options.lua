@@ -4,6 +4,10 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = ","
 vim.g.markdown_recommended_style = 0 -- Fix markdown indentation settings
 
+-- Disable built-in netrw; yazi.nvim is the file explorer (open_for_directories)
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
 opt.autowrite = true -- Enable auto write
 opt.completeopt = "menu,menuone,noselect"
 opt.confirm = true -- Confirm to save changes before exiting modified buffer
