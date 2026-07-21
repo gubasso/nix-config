@@ -29,8 +29,15 @@ return {
     -- (launch.lua:360) runs before this `vim.schedule`'d callback
     -- (launch.lua:416-417), so the clear reliably lands before any yank.
     -- `pcall` guards the no-clipboard case where the autocmd was never set.
+    -- Also make the buffer locally editable so we can massage a block before
+    -- yanking it out. The scrollback buffer is a `nofile` scratch buffer
+    -- (nvim_create_buf(true, true)); the plugin never sets readonly/nomodifiable
+    -- on it, and nothing re-locks it after this `after_ready` callback. Edits
+    -- stay local (nofile) and never write back to the terminal history.
     local function on_ready(_kitty_data, _opts)
       pcall(vim.api.nvim_clear_autocmds, { group = "KittyScrollBackNvimTextYankPost" })
+      vim.bo.modifiable = true
+      vim.bo.readonly = false
       goto_last_written_line()
     end
 
