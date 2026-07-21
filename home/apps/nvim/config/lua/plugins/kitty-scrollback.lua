@@ -38,6 +38,13 @@ return {
       pcall(vim.api.nvim_clear_autocmds, { group = "KittyScrollBackNvimTextYankPost" })
       vim.bo.modifiable = true
       vim.bo.readonly = false
+      -- Free native i/a/o: the scrollback is a terminal buffer, so entering
+      -- insert/terminal mode fires a TermEnter autocmd (augroup
+      -- KittyScrollBackNvimTermEnter, autocommands.lua:140-149) that opens the
+      -- paste window. keymaps_enabled=false does NOT disable it (it's an
+      -- autocmd, not a keymap). load_autocmds() (launch.lua:360) runs before
+      -- this vim.schedule'd after_ready, so the clear reliably lands.
+      pcall(vim.api.nvim_clear_autocmds, { group = "KittyScrollBackNvimTermEnter" })
       goto_last_written_line()
     end
 
