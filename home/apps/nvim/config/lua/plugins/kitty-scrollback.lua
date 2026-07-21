@@ -15,58 +15,22 @@ return {
       vim.api.nvim_win_set_cursor(0, { last_line, 0 })
     end
 
-    -- Read a buffer's lines and strip trailing blank lines. The scrollback is a
-    -- terminal buffer whose grid is padded with empty lines up to the window
-    -- height; this returns just the real captured text.
-    local function trimmed_lines(bufid)
-      local lines = vim.api.nvim_buf_get_lines(bufid, 0, -1, false)
-      while #lines > 0 and lines[#lines]:match("^%s*$") do
-        table.remove(lines)
-      end
-      return lines
-    end
-
-    -- after_ready: swap the terminal scrollback buffer for a plain editable
-    -- scratch buffer holding the same text, so i/a/o are NATIVE insert.
+    -- after_ready: clear the quit-on-yank autocmd, then position the cursor.
     --
-    -- WHY (the terminal buffer is the root problem):
-    -- The scrollback content is loaded via jobstart({ term = true }) / termopen
-    -- into the pager buffer (kitty_commands.lua:58,144-146), so it is a genuine
-    -- `term://` buffer. The one-shot `kitten @ get-text` job exits before this
-    -- callback fires, but Neovim keeps `buftype=terminal` for the buffer's life.
-    -- On a terminal buffer, i/a/o enter TERMINAL MODE (feed keys to the dead job)
-    -- and snap the view to the grid cursor -- which sits below the captured text,
-    -- in the blank padding -- so editing appears to "jump to the end then go
-    -- blank". No amount of `modifiable`/autocmd-clearing changes this: terminal
-    -- mode is intrinsic to terminal buffers. The only robust fix is to leave the
-    -- terminal buffer behind. We copy its text into a fresh `nofile` scratch
-    -- buffer and show that in the pager window instead.
-    --
-    -- Trade-off: the scratch buffer is plain text -- the terminal's ANSI colors
-    -- (terminal-cell highlights, not text) are lost. That is the cost of native
-    -- editing, and fine for the massage-then-yank workflow.
-    --
-    -- We still clear `KittyScrollBackNvimTextYankPost` so yank does NOT quit the
-    -- pager (a deliberate preference); and because the plugin's own `q`/quit
-    -- keymaps live on the now-hidden terminal buffer and gate on it, we add a
-    -- buffer-local `q` -> quitall! on the scratch buffer (quitting nvim closes
-    -- the kitty overlay). `load_autocmds()` (launch.lua:360) runs before this
-    -- `vim.schedule`'d callback (launch.lua:416-417), so the clear lands first.
-    -- Refs (commit 9342a0e): kitty_commands.lua:58,144-146 (term=true);
-    -- launch.lua:350-358 (buffer + window), :416-417 (after_ready).
+    -- WHY (yank no longer exits the buffer):
+    -- The auto-exit is a hardcoded `TextYankPost` autocmd in the augroup
+    -- `KittyScrollBackNvimTextYankPost`. Whenever a yank lands in the `+`
+    -- (system clipboard) register and a clipboard tool exists, it defers a
+    -- `ksb_util.quitall()` (200ms for xclip, else 0ms). It is registered
+    -- UNCONDITIONALLY by `load_autocmds()` and is NOT gated by any opt
+    -- (`keymaps_enabled` does not affect it). There is no built-in option to
+    -- disable it. The default `<leader>y` keymaps just do `"+y`, so the quit
+    -- comes purely from this autocmd. We remove it here. `load_autocmds()`
+    -- (launch.lua:360) runs before this `vim.schedule`'d callback
+    -- (launch.lua:416-417), so the clear reliably lands before any yank.
+    -- `pcall` guards the no-clipboard case where the autocmd was never set.
     local function on_ready(_kitty_data, _opts)
       pcall(vim.api.nvim_clear_autocmds, { group = "KittyScrollBackNvimTextYankPost" })
-
-      local lines = trimmed_lines(vim.api.nvim_get_current_buf())
-      local buf = vim.api.nvim_create_buf(false, true) -- unlisted scratch (nofile)
-      vim.api.nvim_set_option_value("buftype", "nofile", { buf = buf })
-      vim.api.nvim_set_option_value("swapfile", false, { buf = buf })
-      vim.api.nvim_set_option_value("modifiable", true, { buf = buf })
-      vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-      vim.api.nvim_win_set_buf(0, buf) -- current window is the pager window here
-
-      vim.keymap.set("n", "q", "<cmd>quitall!<cr>", { buffer = buf, nowait = true })
-
       goto_last_written_line()
     end
 
