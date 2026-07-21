@@ -74,16 +74,18 @@ rec {
 
   # Font family (fontconfig string) -> the nixpkgs package that provides it, as a
   # function of a package set (so this pure module can hold the map without a
-  # build-input dependency; the overlay applies it as `fontPackagesFor prev`). An
-  # app module installs the package for the font it resolves via fontOf, so a
-  # named "official" font (themes typography.families) is guaranteed present on
-  # every host. Ad-hoc / unregistered families install nothing — the user
-  # provisions those. Keyed by the resolved family STRING so both token-resolved
-  # and literal families match. See docs/reference/theming.md.
-  fontPackagesFor = pkgs: {
-    "Hack" = pkgs.nerd-fonts.hack;
-    "IBM Plex Mono" = pkgs.ibm-plex;
-    "Inter" = pkgs.inter;
-    "Symbols Nerd Font" = pkgs.nerd-fonts.symbols-only;
-  };
+  # build-input dependency; the overlay applies it as `fontPackagesFor prev`).
+  # DERIVED from the single font catalogue (catalog/fonts.nix) by
+  # re-keying token -> {family; pkg;} to family -> package, so no family string or
+  # package is written twice (it is also the source of typography.families). An app
+  # module installs the package for the font it resolves via fontOf, so a named
+  # "official" font is guaranteed present; the whole set is installed on opt-in
+  # hosts by modules/home/fonts.nix. Keyed by the resolved family STRING so both
+  # token-resolved and literal families match; ad-hoc / unregistered families
+  # install nothing. See docs/reference/theming.md.
+  fontPackagesFor =
+    pkgs:
+    lib.mapAttrs' (_: entry: lib.nameValuePair entry.family (entry.pkg pkgs)) (
+      import ../../catalog/fonts.nix
+    );
 }

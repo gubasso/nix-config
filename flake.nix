@@ -126,7 +126,7 @@
       checks.${system} = {
         inherit (pkgs) dwm dwm-session;
         formatting = pkgs.runCommand "nixfmt-check" { nativeBuildInputs = [ pkgs.nixfmt ]; } ''
-          find ${./flake.nix} ${./lib} ${./modules} ${./overlays} ${./pkgs} ${./themes} \
+          find ${./flake.nix} ${./lib} ${./modules} ${./overlays} ${./derivations} ${./catalog} ${./themes} \
             -name '*.nix' -print0 | xargs -0 nixfmt --check
           touch "$out"
         '';

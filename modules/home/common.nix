@@ -18,6 +18,7 @@
     ./nix.nix
     ./keyring.nix
     ./generic-linux.nix
+    ./fonts.nix
     ../../home/apps
   ];
 

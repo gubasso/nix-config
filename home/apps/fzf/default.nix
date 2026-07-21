@@ -1,7 +1,7 @@
 # fzf command-line fuzzy finder and bash completion tuning.
 #
 # fzf-tab-completion (lincheney's bash port) is a fully nix-managed dependency:
-# it is vendored as `pkgs.fzf-tab-completion` (pkgs/fzf-tab-completion, wired in
+# it is vendored as `pkgs.fzf-tab-completion` (derivations/fzf-tab-completion, wired in
 # overlays/default.nix) and sourced below directly from the nix store — no
 # runtime `/usr/share`/homebrew/XDG discovery.
 { pkgs, ... }:

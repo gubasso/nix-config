@@ -5,9 +5,11 @@
 # themes/default.nix imports themes by explicit name) so it is never mistaken for
 # a selectable theme.
 #
-#   families : registry of "official" fonts (token -> fontconfig family string).
-#              Resolved by themeLib.fontOf; each is provisioned by a matching
-#              entry in the fontPackages map (lib/theme/fonts.nix fontPackagesFor).
+#   families : token -> fontconfig family string, DERIVED from the single font
+#              catalogue (catalog/fonts.nix) so family strings are never duplicated
+#              between here and the fontPackages map. Resolved by themeLib.fontOf;
+#              each is provisioned from the same catalogue by lib/theme/fonts.nix
+#              `fontPackagesFor`.
 #   sizes    : named point-size scale (token -> int).
 #   roles    : bind a semantic role to a family+size token; an app picks a role
 #              default and a host may override per app via hostSettings.appFonts.
@@ -15,12 +17,7 @@
 #
 # Schema + resolution rules: docs/reference/theming.md.
 {
-  families = {
-    hack = "Hack";
-    inter = "Inter";
-    ibmplex = "IBM Plex Mono";
-    symbols = "Symbols Nerd Font";
-  };
+  families = builtins.mapAttrs (_: entry: entry.family) (import ../../catalog/fonts.nix);
   sizes = {
     xs = 10;
     sm = 11;

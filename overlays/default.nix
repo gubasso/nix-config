@@ -1,14 +1,14 @@
 { inputs }:
 _final: prev: {
-  dwm = import ../pkgs/dwm {
+  dwm = import ../derivations/dwm {
     pkgs = prev;
     inherit inputs;
   };
-  dwm-session = import ../pkgs/dwm-session { pkgs = prev; };
+  dwm-session = import ../derivations/dwm-session { pkgs = prev; };
 
   # fzf-tab-completion (lincheney's bash port) — not in nixpkgs; vendored under
-  # pkgs/ and exposed here so the fzf app module can source it from the store.
-  fzf-tab-completion = import ../pkgs/fzf-tab-completion { pkgs = prev; };
+  # derivations/ and exposed here so the fzf app module can source it from the store.
+  fzf-tab-completion = import ../derivations/fzf-tab-completion { pkgs = prev; };
 
   # Theme library (resolver + emitters) over the public theme registry. Exposed
   # here so any Home Manager app module can resolve `hostSettings.theme` and emit
