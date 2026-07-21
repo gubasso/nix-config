@@ -40,7 +40,9 @@ in
 
   # Shared static assets.
   xdg.configFile."rofi/layout.rasi".source = ./layout.rasi;
-  xdg.configFile."rofi/rofimoji.rc".source = ./rofimoji.rc;
+  # rofimoji auto-loads only $XDG_CONFIG_HOME/rofimoji.rc (upstream default), so it
+  # must land at ~/.config/rofimoji.rc -- not under rofi/, where it is never read.
+  xdg.configFile."rofimoji.rc".source = ./rofimoji.rc;
 
   # Home Manager owns config.rasi and the rofi package (single owner).
   programs.rofi = {
