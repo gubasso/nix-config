@@ -13,14 +13,14 @@ return {
   },
   keys = {
     {
-      "<c-e>",
+      "<leader>ee",
       function()
         require("mini.files").open(vim.loop.cwd(), true)
       end,
-      desc = "Curr File (mini.files)",
+      desc = "Explorer @ cwd (mini.files)",
     },
     {
-      "<c-f>",
+      "<leader>ef",
       function()
         local mini = require("mini.files")
         local uv = vim.uv or vim.loop
@@ -38,7 +38,7 @@ return {
         end
         mini.open(path, true)
       end,
-      desc = "Files (mini.files)",
+      desc = "Explorer @ file (mini.files)",
     },
   },
   config = function(_, opts)

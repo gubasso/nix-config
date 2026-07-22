@@ -1,6 +1,6 @@
 -- yazi.nvim: the `yazi` ranger-style TUI embedded in a floating window.
 -- Replaces oil.nvim as the primary full-screen file browser and the handler for
--- `nvim <dir>`. mini.files stays as the in-editor miller explorer (<C-e>/<C-f>).
+-- `nvim <dir>`. mini.files stays as the in-editor miller explorer (<leader>e…).
 return {
   "mikavilpas/yazi.nvim",
   -- Eager (like the old oil spec) so open_for_directories can hijack `nvim .`
@@ -15,11 +15,14 @@ return {
     "MagicDuck/grug-far.nvim",
   },
   keys = {
-    -- Single opener: `:Yazi toggle` opens fresh on first use and resumes the last
-    -- session (restoring the hovered file) thereafter -- yazi.nvim's M.toggle
-    -- falls back to a normal open when there is no prior state.
-    { "<leader>-", mode = { "n", "v" }, "<cmd>Yazi toggle<cr>", desc = "Yazi (resume/open)" },
-    { "<leader>_", "<cmd>Yazi cwd<cr>", desc = "Yazi (working dir)" },
+    -- <C-e>: open a fresh yazi at the working dir.
+    { "<c-e>", "<cmd>Yazi cwd<cr>", desc = "Yazi (working dir)" },
+    -- <C-f>: force a fresh yazi hovering the current file (NOT resume/toggle) --
+    -- bare `:Yazi` opens on the current buffer's file, like mini.files does.
+    { "<c-f>", "<cmd>Yazi<cr>", desc = "Yazi (current file)" },
+    -- <C-y>: toggle/resume the last yazi session (restores the hovered file);
+    -- yazi.nvim's M.toggle falls back to a normal open when there is no prior state.
+    { "<c-y>", "<cmd>Yazi toggle<cr>", desc = "Yazi (resume)" },
   },
   opts = {
     open_for_directories = true, -- replace netrw/oil: `nvim <dir>` opens yazi
