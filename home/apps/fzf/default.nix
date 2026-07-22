@@ -4,8 +4,59 @@
 # it is vendored as `pkgs.fzf-tab-completion` (derivations/fzf-tab-completion, wired in
 # overlays/default.nix) and sourced below directly from the nix store — no
 # runtime `/usr/share`/homebrew/XDG discovery.
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
+let
+  # Directory names fzf's built-in walker skips (CTRL-T, ALT-C, bare fzf,
+  # ** completion). Bare names, matched at any depth — no globs.
+  walkerSkipDirs = [
+    # VCS
+    ".git"
+    ".hg"
+    ".svn"
+    ".jj"
+    # Nix / direnv ("result" = nix-build symlink; the walker follows symlinks
+    # into /nix/store without it)
+    ".direnv"
+    "result"
+    # JS / web dev
+    "node_modules"
+    "dist"
+    "coverage"
+    ".next"
+    ".nuxt"
+    ".svelte-kit"
+    ".astro"
+    ".turbo"
+    ".vite"
+    ".parcel-cache"
+    ".cache"
+    ".output"
+    ".vercel"
+    ".netlify"
+    # Rust
+    "target"
+    # Zig (cache dir renamed zig-cache → .zig-cache in 0.13; both in the wild)
+    ".zig-cache"
+    "zig-cache"
+    "zig-out"
+    # Python
+    ".venv"
+    "venv"
+    "__pycache__"
+    ".mypy_cache"
+    ".pytest_cache"
+    ".ruff_cache"
+    ".tox"
+    ".nox"
+    ".eggs"
+    ".ipynb_checkpoints"
+    ".hypothesis"
+    "htmlcov"
+    # Terraform
+    ".terraform"
+  ];
+in
 {
   programs.fzf = {
     enable = true;
@@ -20,14 +71,13 @@
       "--bind='ctrl-/:toggle-preview'"
       "--bind='ctrl-d:half-page-down'"
       "--bind='ctrl-u:half-page-up'"
+      "--walker-skip=${lib.concatStringsSep "," walkerSkipDirs}"
     ];
     fileWidget.options = [
-      "--walker-skip .git,node_modules,target,.venv,__pycache__"
       "--preview 'bat -n --color=always --line-range :500 {} 2>/dev/null || cat {}'"
       "--bind 'ctrl-/:change-preview-window(down|hidden|)'"
     ];
     changeDirWidget.options = [
-      "--walker-skip .git,node_modules,target,.venv,__pycache__"
       "--preview 'ls -1 --color=always {} | head -50'"
     ];
   };
