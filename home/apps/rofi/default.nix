@@ -29,11 +29,14 @@ let
   '';
 in
 {
-  # Provision the resolved font (registered families only; ad-hoc ones are the
-  # user's responsibility — see docs/reference/theming.md).
-  home.packages = lib.optional (
-    pkgs.fontPackages ? ${rofiFont.family}
-  ) pkgs.fontPackages.${rofiFont.family};
+  # rofimoji is the emoji/char picker launched directly as `rofimoji`; its config
+  # (selector = rofi) is shipped below. Provision the resolved font too (registered
+  # families only; ad-hoc ones are the user's responsibility — see
+  # docs/reference/theming.md).
+  home.packages = [
+    pkgs.rofimoji
+  ]
+  ++ lib.optional (pkgs.fontPackages ? ${rofiFont.family}) pkgs.fontPackages.${rofiFont.family};
 
   # Per-host generated theme (colors + layout import); color SoT stays lib/theme.
   home.file.".local/state/rofi/active-theme.rasi".source = activeTheme;
