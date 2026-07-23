@@ -83,7 +83,7 @@ inputs.nixpkgs.lib.nixosSystem {
     inputs.home-manager.nixosModules.home-manager
 
     {
-      nixpkgs.overlays = [ (import ../overlays { inherit inputs; }) ];
+      nixpkgs.overlays = [ (import ../overlays) ];
 
       home-manager = {
         useGlobalPkgs = true;

@@ -1,16 +1,40 @@
 # yazi terminal file manager (backs yazi.nvim) managed via Home Manager's
-# programs.yazi so its plugins are declared and pinned by Nix (flake inputs in
-# flake.nix). The package is WRAPPED (pkgs.yazi.override extraPackages) so the
+# programs.yazi so its plugins are declared and pinned by Nix. Plugin sources are
+# fetched in this app dir (see the let block), not as loose flake.nix inputs, so
+# the whole yazi setup stays self-contained here. The package is WRAPPED
+# (pkgs.yazi.override extraPackages) so the
 # plugins' CLI dependencies sit on yazi's own private PATH -- they don't have to
 # be on the user's PATH. The nixpkgs yazi wrapper already carries the preview
 # stack (jq, poppler-utils, _7zz, ffmpeg-headless, fd, ripgrep, fzf, zoxide,
 # imagemagick, chafa, resvg), so only the extra plugin tools are added here.
-{ pkgs, inputs, ... }:
+{ pkgs, ... }:
 
 let
+  # Source pins fetched in-app, NOT as loose top-level flake.nix inputs: each
+  # app's setup (source pins + wiring) stays scoped to home/apps/<app>/. Bump
+  # rev + hash to update (a wrong hash fails at build, not `nix flake check`).
   # Official plugins live in subdirectories of the yazi-rs/plugins monorepo.
-  yaziPlugins = inputs.yazi-plugins;
+  yaziPlugins = pkgs.fetchFromGitHub {
+    owner = "yazi-rs";
+    repo = "plugins";
+    rev = "bb758e2fd774738f14cd260642631ebbd568741a";
+    hash = "sha256-uV5KZE+4gT/o7hzer/hwAfU5lyDYgMnRlsQX+BkCRhM=";
+  };
   official = name: "${yaziPlugins}/${name}.yazi";
+
+  # Third-party plugins: the repo root is the plugin.
+  ouch-yazi = pkgs.fetchFromGitHub {
+    owner = "ndtoan96";
+    repo = "ouch.yazi";
+    rev = "406ce6c13ec3a18d4872b8f64b62f4a530759b2c";
+    hash = "sha256-14x/bD0aD9hXONaqQD8Dt7rLBCMq7bkVLH6uCPOQ0C8=";
+  };
+  mediainfo-yazi = pkgs.fetchFromGitHub {
+    owner = "boydaihungst";
+    repo = "mediainfo.yazi";
+    rev = "e079a001f4fefd69007e515bbede4e16b95a811e";
+    hash = "sha256-RIVcKJO89R4oaE6sJuFcV8pFK4nvWtq6ILAXehu4FIY=";
+  };
 in
 {
   programs.yazi = {
@@ -48,9 +72,9 @@ in
       smart-enter = official "smart-enter";
       toggle-pane = official "toggle-pane";
       zoom = official "zoom";
-      # Third-party plugins: the repo root is the plugin.
-      ouch = inputs.ouch-yazi;
-      mediainfo = inputs.mediainfo-yazi;
+      # Third-party plugins (fetched in the let block above).
+      ouch = ouch-yazi;
+      mediainfo = mediainfo-yazi;
     };
 
     # yazi.toml: fetchers (git status column) + previewers/preloaders (ouch, mediainfo).

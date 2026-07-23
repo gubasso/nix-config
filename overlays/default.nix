@@ -1,8 +1,6 @@
-{ inputs }:
 _final: prev: {
   dwm = import ../derivations/dwm {
     pkgs = prev;
-    inherit inputs;
   };
   dwm-session = import ../derivations/dwm-session { pkgs = prev; };
 

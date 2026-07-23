@@ -28,28 +28,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Public GitHub fork exception: github.com/gubasso/dwm is an intentional
-    # public namespace reference, not private host or work data.
-    dwm-fork = {
-      url = "github:gubasso/dwm/rice";
-      flake = false;
-    };
-
-    # Yazi TUI plugins, consumed declaratively by programs.yazi in
-    # home/apps/yazi. Public plugin sources (no private data): the official
-    # monorepo plus two third-party plugins.
-    yazi-plugins = {
-      url = "github:yazi-rs/plugins";
-      flake = false;
-    };
-    ouch-yazi = {
-      url = "github:ndtoan96/ouch.yazi";
-      flake = false;
-    };
-    mediainfo-yazi = {
-      url = "github:boydaihungst/mediainfo.yazi";
-      flake = false;
-    };
+    # NOTE: source-only deps of a SINGLE app/component (yazi plugins, the dwm
+    # fork, a yazi flavor, ...) are deliberately NOT declared here. They are
+    # fetched in place with pkgs.fetchFromGitHub next to their one consumer
+    # (home/apps/<app>/, derivations/<pkg>/) so each component's setup stays
+    # self-contained instead of scattered into this shared file. Only
+    # framework-wide inputs and real flakes consumed for their outputs (e.g.
+    # nixgl.packages) belong here.
   };
 
   outputs =
@@ -58,7 +43,7 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs {
         inherit system;
-        overlays = [ (import ./overlays { inherit inputs; }) ];
+        overlays = [ (import ./overlays) ];
         config.allowUnfree = true;
       };
       mkHost = import ./lib/mk-host.nix { inherit inputs; };
@@ -95,7 +80,7 @@
         keyring = ./modules/home/keyring.nix;
       };
 
-      overlays.default = import ./overlays { inherit inputs; };
+      overlays.default = import ./overlays;
 
       packages.${system} = {
         inherit (pkgs) dwm dwm-session;
