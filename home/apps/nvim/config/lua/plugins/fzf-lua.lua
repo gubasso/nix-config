@@ -266,23 +266,21 @@ return {
     require("which-key").add({
       -- Direct shortcuts (muscle memory / conventions)
       { "<C-p>", fzf.files, desc = "Find Files" },
-      {
-        "<leader>/",
-        function()
-          -- Shrink the preview to 35% (vs the global right:60%) so the result
-          -- list — the point of a fuzzy line grep — gets the remaining 65%.
-          fzf.grep_project({ winopts = { preview = { horizontal = "right:35%" } } })
-        end,
-        desc = "Grep (fuzzy lines)",
-      },
+      { "<leader>/", fzf.blines, desc = "Buffer lines (fuzzy)" },
       { "<leader>:", fzf.command_history, desc = "Command History" },
       { "<leader>r", fzf.resume, desc = "Resume last picker" },
 
       -- <leader>f — everyday pickers (lowercase = frequent)
       { "<leader>fb", fzf.buffers, desc = "Buffers" },
-      { "<leader>fa", "<cmd>TodosAll<CR>", desc = "Todo: All" },
-      { "<leader>fp", "<cmd>TodosPriority<CR>", desc = "Todo: By priority" },
-      { "<leader>fg", "<cmd>TodosGroup<CR>", desc = "Todo: By group" },
+      {
+        "<leader>fg",
+        function()
+          -- Shrink the preview to 35% (vs the global right:60%) so the result
+          -- list — the point of a fuzzy line grep — gets the remaining 65%.
+          fzf.grep_project({ winopts = { preview = { horizontal = "right:35%" } } })
+        end,
+        desc = "Grep project (fuzzy lines)",
+      },
       {
         "<leader>fr",
         function()
@@ -290,7 +288,6 @@ return {
         end,
         desc = "Grep (regex)",
       },
-      { "<leader>fs", "<cmd>TodosStatus<CR>", desc = "Todo: By status" },
       { "<leader>fw", fzf.grep_cword, desc = "Grep word under cursor" },
       {
         "<leader>f/",
