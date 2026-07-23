@@ -53,11 +53,6 @@
 {
   "mounts": [
     {
-      "source": "${localEnv:HOME}/.config/cog",
-      "target": "${localEnv:HOME}/.config/cog",
-      "type": "bind"
-    },
-    {
       "source": "${localEnv:HOME}/.local/share/cog",
       "target": "${localEnv:HOME}/.local/share/cog",
       "type": "bind"
@@ -65,11 +60,6 @@
     {
       "source": "${localEnv:HOME}/.local/state/cog",
       "target": "${localEnv:HOME}/.local/state/cog",
-      "type": "bind"
-    },
-    {
-      "source": "${localEnv:HOME}/.cache/cog",
-      "target": "${localEnv:HOME}/.cache/cog",
       "type": "bind"
     }
   ]
