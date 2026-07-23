@@ -156,7 +156,7 @@ in
           desc = "Zoom out preview";
         }
         {
-          on = "p";
+          on = "<C-p>";
           run = "plugin smart-paste";
           desc = "Smart paste into hovered dir";
         }
