@@ -14,7 +14,7 @@
 
 {
   imports = [
-    ./env-shell.nix
+    ./env.nix
     ./nix.nix
     ./keyring.nix
     ./generic-linux.nix

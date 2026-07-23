@@ -34,6 +34,7 @@
   publicAppsDir ? ../home/apps,
   privateAppsDir ? null,
   hostSettings ? { },
+  envCatalog ? { },
   system ? "x86_64-linux",
   diskDevice ? "/dev/nvme0n1",
   luksPasswordFile ? null,
@@ -52,6 +53,7 @@ inputs.nixpkgs.lib.nixosSystem {
       diskDevice
       luksPasswordFile
       hostSettings
+      envCatalog
       publicAppsDir
       privateAppsDir
       ;
@@ -92,6 +94,7 @@ inputs.nixpkgs.lib.nixosSystem {
             hostname
             username
             hostSettings
+            envCatalog
             publicAppsDir
             privateAppsDir
             ;

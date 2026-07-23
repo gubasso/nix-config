@@ -6,6 +6,7 @@
   publicAppsDir ? ../home/apps,
   privateAppsDir ? null,
   hostSettings ? { },
+  envCatalog ? { },
   system ? "x86_64-linux",
   extraModules ? [ ],
   extraHomeModules ? [ ],
@@ -26,6 +27,7 @@ inputs.home-manager.lib.homeManagerConfiguration {
       hostname
       username
       hostSettings
+      envCatalog
       publicAppsDir
       privateAppsDir
       ;

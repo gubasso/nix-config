@@ -70,6 +70,8 @@
         mkDisko = import ./lib/mk-disko.nix;
         # Theme resolver + emitters over ./themes (also on pkgs as `themeLib`).
         theme = import ./lib/theme { inherit (nixpkgs) lib; };
+        # Env-catalog renderer (also on pkgs as `envLib`). See lib/env.nix.
+        env = import ./lib/env.nix { inherit (nixpkgs) lib; };
       };
 
       nixosModules = {

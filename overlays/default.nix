@@ -16,6 +16,12 @@ _final: prev: {
   # a theme attrset — no build inputs. See lib/theme and docs/reference/theming.md.
   themeLib = import ../lib/theme { inherit (prev) lib; };
 
+  # Environment-variable renderer over a consumer-private env catalog. Pure
+  # functions of a value context — no build inputs. Exposed here so the shared
+  # home delivery module (modules/home/env.nix) can render each channel without a
+  # cross-flake path import. See lib/env.nix and the nix-secrets env catalog.
+  envLib = import ../lib/env.nix { inherit (prev) lib; };
+
   # Font family (fontconfig string) -> the nixpkgs package that provides it. The
   # map is defined next to the resolver (lib/theme/fonts.nix `fontPackagesFor`) as
   # a function of a package set; applied here to `prev`. An app module installs
