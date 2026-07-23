@@ -19,4 +19,4 @@ SoT: a `families` registry (`hack` `inter` `ibmplex` `symbols`) + a `sizes` scal
 
 > Fonts are wired from this SoT: kitty (mono role) and rofi resolve via
 > `themeLib.fontOf` and are provisioned through `pkgs.fontPackages`; a host can
-> override per app with `hostSettings.appFonts.<app>`. dwm's font is a follow-up.
+> override per app with `my.apps.<app>.font`. dwm's font is a follow-up.

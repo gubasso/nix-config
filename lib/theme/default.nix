@@ -34,7 +34,7 @@ let
       scheme
     else
       throw (
-        "theme ${theme.meta.name}: appSchemes.${app} = ${builtins.toJSON scheme} "
+        "theme ${theme.meta.name}: ${app} scheme = ${builtins.toJSON scheme} "
         + "is not in associatedSchemes.${app} "
         + "(${lib.concatStringsSep ", " (theme.associatedSchemes.${app} or [ ])})"
       );

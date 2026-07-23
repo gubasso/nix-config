@@ -9,8 +9,7 @@
 # The install list is DERIVED from the registry (`lib.attrValues
 # pkgs.fontPackages`) — add a family there and it is installed here automatically,
 # no second list to keep in sync. Opt-in per host via `hostSettings.fontLibrary`
-# (free-form host attrset, same channel as `hostSettings.theme`/`appFonts`);
-# default off, so NixOS hosts (orion/lyra) are untouched until they ask for it.
+# (free-form host attrset, same channel as `hostSettings.theme`); default off.
 {
   lib,
   pkgs,

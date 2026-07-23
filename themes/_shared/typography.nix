@@ -12,7 +12,7 @@
 #              `fontPackagesFor`.
 #   sizes    : named point-size scale (token -> int).
 #   roles    : bind a semantic role to a family+size token; an app picks a role
-#              default and a host may override per app via hostSettings.appFonts.
+#              default and a host may override per app via my.apps.<app>.font.
 #   weights  : named weight scale (design token; not yet emitted).
 #
 # Schema + resolution rules: docs/reference/theming.md.

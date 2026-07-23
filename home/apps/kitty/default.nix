@@ -19,8 +19,8 @@ let
     inherit (pkgs) themeLib;
   };
   theme = pkgs.themeLib.resolve (hostSettings.theme or "everforest");
-  # Mono role default, overridable per host via hostSettings.appFonts.kitty.
-  kittyFont = pkgs.themeLib.fontOf theme ({ role = "mono"; } // (hostSettings.appFonts.kitty or { }));
+  # Mono role default, overridable per host via my.apps.kitty.font.
+  kittyFont = pkgs.themeLib.fontOf theme ({ role = "mono"; } // config.my.apps.kitty.font);
   # Symbols Nerd Font (theme `glyphs` role) is installed unconditionally so a
   # non-Nerd primary font (e.g. IBM Plex Mono) still renders icon glyphs via the
   # kitty.conf symbol_map. Harmless when the primary font is itself a Nerd Font.
@@ -31,81 +31,89 @@ let
   '';
 in
 {
-  home = {
-    # Install kitty GL-wrapped for generic-linux hosts (identity wrap on NixOS),
-    # the same pattern as home/apps/browser. Replaces programs.kitty.package.
-    # Also provision the resolved mono font (registered families only; ad-hoc
-    # ones are the user's responsibility — see docs/reference/theming.md).
-    packages = [
-      (config.lib.nixGL.wrap pkgs.kitty)
-    ]
-    ++ lib.optional (pkgs.fontPackages ? ${kittyFont.family}) pkgs.fontPackages.${kittyFont.family}
-    ++ lib.optional (pkgs.fontPackages ? ${glyphFont.family}) pkgs.fontPackages.${glyphFont.family};
-
-    # Reload running kitties after a switch (replaces programs.kitty's onChange).
-    # ctrl+shift+r (load_config_file) is the manual equivalent.
-    activation.kittyReload = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      $DRY_RUN_CMD pkill -USR1 -u "$USER" kitty || true
-    '';
-
-    file = {
-      ".local/bin/kitty-dctl-pair" = {
-        source = ./bin/kitty-dctl-pair;
-        executable = true;
-      };
-      ".local/bin/kitty-mode-help" = {
-        source = ./bin/kitty-mode-help;
-        executable = true;
-      };
-    };
+  options.my.apps.kitty.font = lib.mkOption {
+    type = lib.types.attrsOf (lib.types.either lib.types.str lib.types.int);
+    default = { };
+    description = "Per-host kitty mono font override {family?; size?;} merged over the theme mono role (ADR-0019).";
   };
 
-  # The whole ~/.config/kitty is one vendored directory (kitty.conf + kittens +
-  # includes + current-theme.conf), mapped as a single real-file store dir —
-  # mirrors nvim. mkDefault yields to a private per-host overlay (nix-secrets
-  # shadows host.conf). Replaces programs.kitty's generated kitty.conf and the
-  # former per-file xdg.configFile entries.
-  xdg.configFile."kitty".source = lib.mkDefault (pkgs.mkRealConfigDir "kitty" ./config kittyThemeDir);
+  config = {
+    home = {
+      # Install kitty GL-wrapped for generic-linux hosts (identity wrap on NixOS),
+      # the same pattern as home/apps/browser. Replaces programs.kitty.package.
+      # Also provision the resolved mono font (registered families only; ad-hoc
+      # ones are the user's responsibility — see docs/reference/theming.md).
+      packages = [
+        (config.lib.nixGL.wrap pkgs.kitty)
+      ]
+      ++ lib.optional (pkgs.fontPackages ? ${kittyFont.family}) pkgs.fontPackages.${kittyFont.family}
+      ++ lib.optional (pkgs.fontPackages ? ${glyphFont.family}) pkgs.fontPackages.${glyphFont.family};
 
-  programs.bash.initExtra = ''
-    if [[ -n "''${KITTY_WINDOW_ID:-}" && -z "''${NVIM:-}" ]]; then
-      __kitty_title_precmd() {
-        local last_status=$?
-        local p="''${PWD/#$HOME/\~}" cwd last rest second branch dirty="" exit_str=""
+      # Reload running kitties after a switch (replaces programs.kitty's onChange).
+      # ctrl+shift+r (load_config_file) is the manual equivalent.
+      activation.kittyReload = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        $DRY_RUN_CMD pkill -USR1 -u "$USER" kitty || true
+      '';
 
-        cwd=$p
-        last=''${p##*/}
-        rest=''${p%/*}
-        second=''${rest##*/}
-        [[ "$p" == */*/* ]] && cwd="$second/$last"
+      file = {
+        ".local/bin/kitty-dctl-pair" = {
+          source = ./bin/kitty-dctl-pair;
+          executable = true;
+        };
+        ".local/bin/kitty-mode-help" = {
+          source = ./bin/kitty-mode-help;
+          executable = true;
+        };
+      };
+    };
 
-        branch=$(command git symbolic-ref --short HEAD 2>/dev/null) ||
-          branch=$(command git rev-parse --short HEAD 2>/dev/null) ||
-          branch=""
-        if [[ -n "$branch" ]]; then
-          command git diff --quiet HEAD -- 2>/dev/null || dirty='*'
-        fi
-        ((last_status != 0)) && exit_str=$last_status
+    # The whole ~/.config/kitty is one vendored directory (kitty.conf + kittens +
+    # includes + current-theme.conf), mapped as a single real-file store dir —
+    # mirrors nvim. mkDefault yields to a private per-host overlay (nix-secrets
+    # shadows host.conf). Replaces programs.kitty's generated kitty.conf and the
+    # former per-file xdg.configFile entries.
+    xdg.configFile."kitty".source = lib.mkDefault (pkgs.mkRealConfigDir "kitty" ./config kittyThemeDir);
 
-        command kitten @ set-user-vars \
-          KITTY_SHELL_CWD="$cwd" \
-          KITTY_SHELL_BRANCH="$branch" \
-          KITTY_SHELL_DIRTY="$dirty" \
-          KITTY_SHELL_EXIT_CODE="$exit_str" \
-          KITTY_NVIM="" \
-          >/dev/null 2>&1 || true
-        command kitten @ set-window-title --temporary "$cwd" >/dev/null 2>&1 ||
-          printf '\033]2;%s\a' "$cwd"
-        return "$last_status"
-      }
+    programs.bash.initExtra = ''
+      if [[ -n "''${KITTY_WINDOW_ID:-}" && -z "''${NVIM:-}" ]]; then
+        __kitty_title_precmd() {
+          local last_status=$?
+          local p="''${PWD/#$HOME/\~}" cwd last rest second branch dirty="" exit_str=""
 
-      if [[ ";''${PROMPT_COMMAND:-};" != *";__kitty_title_precmd;"* ]]; then
-        if [[ -n "''${PROMPT_COMMAND:-}" ]]; then
-          PROMPT_COMMAND="__kitty_title_precmd;''${PROMPT_COMMAND}"
-        else
-          PROMPT_COMMAND='__kitty_title_precmd'
+          cwd=$p
+          last=''${p##*/}
+          rest=''${p%/*}
+          second=''${rest##*/}
+          [[ "$p" == */*/* ]] && cwd="$second/$last"
+
+          branch=$(command git symbolic-ref --short HEAD 2>/dev/null) ||
+            branch=$(command git rev-parse --short HEAD 2>/dev/null) ||
+            branch=""
+          if [[ -n "$branch" ]]; then
+            command git diff --quiet HEAD -- 2>/dev/null || dirty='*'
+          fi
+          ((last_status != 0)) && exit_str=$last_status
+
+          command kitten @ set-user-vars \
+            KITTY_SHELL_CWD="$cwd" \
+            KITTY_SHELL_BRANCH="$branch" \
+            KITTY_SHELL_DIRTY="$dirty" \
+            KITTY_SHELL_EXIT_CODE="$exit_str" \
+            KITTY_NVIM="" \
+            >/dev/null 2>&1 || true
+          command kitten @ set-window-title --temporary "$cwd" >/dev/null 2>&1 ||
+            printf '\033]2;%s\a' "$cwd"
+          return "$last_status"
+        }
+
+        if [[ ";''${PROMPT_COMMAND:-};" != *";__kitty_title_precmd;"* ]]; then
+          if [[ -n "''${PROMPT_COMMAND:-}" ]]; then
+            PROMPT_COMMAND="__kitty_title_precmd;''${PROMPT_COMMAND}"
+          else
+            PROMPT_COMMAND='__kitty_title_precmd'
+          fi
         fi
       fi
-    fi
-  '';
+    '';
+  };
 }

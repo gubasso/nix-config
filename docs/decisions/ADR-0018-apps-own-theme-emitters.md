@@ -46,5 +46,7 @@ string is byte-identical.
 
 Implemented. `lib/theme/{default,colors,fonts}.nix` (primitives); `home/apps/
 {kitty,rofi,dwm,dunst,starship,xsecurelock,shell-core}/theme.nix` (emitters).
-Supersedes the emitter placement in [ADR-0017](ADR-0017-theme-system.md).
+Supersedes the emitter placement in [ADR-0017](ADR-0017-theme-system.md). The
+private consumer extends the same app-ownership rule from emitters to app-owned
+values in its ADR-0019.
 Schema: `docs/reference/theming.md`.

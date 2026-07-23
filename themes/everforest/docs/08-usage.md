@@ -7,8 +7,10 @@ In the consumer repo (`nix-secrets`):
 ```nix
 hostSettings = {
   theme = "everforest";                    # also the default if theme is unset
-  appSchemes = { nvim = "everforest"; };
 };
+
+# In the consumer's nvim host file:
+my.apps.nvim.scheme = "everforest";
 ```
 
 Then `home-manager switch` (rofi + kitty reload; dwm re-reads Xresources on
@@ -26,7 +28,7 @@ start or Mod+F5).
 
 - **nvim:** `everforest`
 
-Pick one via `hostSettings.appSchemes.<app>`; validated against this list.
+Pick one via `my.apps.<app>.scheme`; validated against this list.
 kitty/rofi/dwm use the emitted palette, so they have no sibling entry.
 
 ## Anti-patterns

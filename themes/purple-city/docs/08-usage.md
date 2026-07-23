@@ -9,8 +9,10 @@ In the consumer repo (`nix-secrets`), set:
 ```nix
 hostSettings = {
   theme = "purple-city";
-  appSchemes = { nvim = "catppuccin"; };  # a sibling from associatedSchemes
 };
+
+# In the consumer's nvim host file:
+my.apps.nvim.scheme = "catppuccin"; # a sibling from associatedSchemes
 ```
 
 Then `home-manager switch` (rofi + kitty reload; dwm re-reads Xresources on
@@ -30,7 +32,7 @@ start or Mod+F5).
 
 - **nvim:** `catppuccin`
 
-A host picks one via `hostSettings.appSchemes.<app>`; the app loads it natively.
+A host picks one via `my.apps.<app>.scheme`; the app loads it natively.
 The pick is validated against this list (`assertAppScheme`). kitty/rofi/dwm are
 driven by the emitted palette, so they have no sibling entry.
 
@@ -40,4 +42,4 @@ driven by the emitted palette, so they have no sibling entry.
   color block — they are generated; edit `theme.nix`.
 - Don't add a sixth rofi `.rasi` per theme — the layout is shared; only the
   palette varies.
-- Don't point `appSchemes.nvim` at a scheme not in `associatedSchemes.nvim`.
+- Don't point `my.apps.nvim.scheme` at a scheme not in `associatedSchemes.nvim`.

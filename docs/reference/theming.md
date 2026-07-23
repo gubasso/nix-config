@@ -115,25 +115,27 @@ font (`Symbols Nerd Font` → `nerd-fonts.symbols-only`) on **every** host,
 regardless of the primary font, and `home/apps/kitty/config/kitty.conf` pins the
 Nerd Font private-use ranges to `Symbols Nerd Font Mono` via `symbol_map` (ranges
 track Nerd Fonts v3.4.0, per the kitty FAQ). This guarantees Neovim/CLI devicons
-render even when the primary font is not a Nerd Font (e.g. IBM Plex Mono on
-tumblesuse) — no per-host font juggling required.
+render even when the primary font is not a Nerd Font — no per-host font juggling
+required.
 
 ## Host selection
 
 ```nix
 hostSettings = {
-  theme = "purple-city";                       # dir name in themes/
-  appSchemes = { nvim = "tokyonight-night"; };  # ⊆ associatedSchemes.<app>
-  appFonts = {                                  # per-app font override (optional)
-    rofi  = { family = "ibmplex"; size = "lg"; };  # tokens …
-    kitty = { family = "IBM Plex Mono"; size = 18; };  # … or literals
-  };
+  theme = "purple-city"; # dir name in themes/
 };
+
+# In the consumer's owning app host files:
+my.apps.nvim.scheme = "tokyonight-night"; # subset of associatedSchemes.nvim
+my.apps.rofi.font = { family = "ibmplex"; size = "lg"; };
+my.apps.kitty.font = { family = "IBM Plex Mono"; size = 18; };
 ```
 
 Absent `hostSettings.theme`, app modules fall back to `"everforest"`. Each
-`appFonts.<app>` is merged over the app's own default and the theme role (highest
-precedence) and resolved through `fontOf`; omit it to take the theme default.
+`my.apps.<app>.font` is merged over the app's own default and the theme role
+(highest precedence) and resolved through `fontOf`; omit it to take the theme
+default. The app-scoped placement extends ADR-0018's ownership rule from emitters
+to app-owned values; nix-secrets ADR-0019 records the private consumer decision.
 
 ## App consumption
 
@@ -149,8 +151,8 @@ Each app owns its emitter(s) in `home/apps/<app>/theme.nix` and wires them in it
 | starship | `mkStarshipPalette` | `[palettes.theme]` appended to `starship.toml` |
 | xsecurelock | `mkXsecurelockEnv` | color lines appended to `env.conf` |
 | shell-core | `mkBashPalette` | `bash/theme-palette.bash` (`__UI_SGR`) |
-| nvim | — (name-ref only, native plugin) | reads `hostSettings.appSchemes.nvim` (consumer repo) |
+| nvim | — (name-ref only, native plugin) | reads `config.my.apps.nvim.scheme` (co-located; consumer repo) |
 
 Note: the kitty/rofi fonts are wired from the SoT `typography` today (via
-`fontOf` + per-app defaults + `hostSettings.appFonts`); dwm's font is still a
+`fontOf` + per-app defaults + `my.apps.<app>.font`); dwm's font is still a
 follow-up. The named font is provisioned through `pkgs.fontPackages`.

@@ -61,7 +61,7 @@
   };
 
   # Sibling schemes — name references only. A host picks one per app via
-  # `hostSettings.appSchemes.<app>`; the app loads it natively (nvim colorscheme
+  # `my.apps.<app>.scheme`; the app loads it natively (nvim colorscheme
   # plugin). No color injection. Values are the nvim colorscheme keys actually
   # installed in the consumer (see home/apps/nvim/.../colorschemes.lua). Apps
   # driven by the emitted palette (kitty, rofi, dwm) need no sibling entry.

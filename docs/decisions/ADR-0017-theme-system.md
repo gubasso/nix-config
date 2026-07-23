@@ -22,7 +22,7 @@ attrset under `themes/<name>` (base16 palette + a semantic-alias layer +
 typography + name-referenced sibling schemes); `lib/theme` emitters transform it
 into rofi/kitty/dwm color config; a host selects one via `hostSettings.theme`.
 Typography is a token SoT — a family registry + size scale + roles — resolved by
-`fontOf` (with per-app defaults and per-host `hostSettings.appFonts` overrides)
+`fontOf` (with per-app defaults and per-host app-scoped font overrides)
 and provisioned via `pkgs.fontPackages`; kitty/rofi fonts are emitted from it.
 Rejected Stylix/nix-colors (extra dependency, weak per-app control) and no
 wallpaper-driven generation. Sibling schemes (tokyonight, catppuccin…) are
@@ -49,5 +49,7 @@ The font subsystem (`fontOf`/`fontPackagesFor`) is factored into
 `themes/_shared/typography.nix`. The app-specific `mk*` emitters have since been
 relocated out of `lib/theme` into each app's `home/apps/<app>/theme.nix`, leaving
 `lib/theme` as the shared token algebra only ([ADR-0018](ADR-0018-apps-own-theme-emitters.md)).
+Consumer app-owned value placement has since moved from central host settings to
+app-scoped options.
 Schema: `docs/reference/theming.md`.
 Authoring: `docs/guides/authoring-a-theme.md`. Rationale: `docs/explanation/theming-model.md`.
