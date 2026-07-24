@@ -70,6 +70,11 @@ in
       "--bind='ctrl-/:toggle-preview'"
       "--bind='ctrl-d:half-page-down'"
       "--bind='ctrl-u:half-page-up'"
+      # Include directories (not just files) in fzf's built-in walker. This is
+      # FZF_DEFAULT_OPTS, inherited by every bare `fzf` — including the one
+      # `fzf.yazi` spawns for yazi's `z` jump, which then cd's into a chosen dir
+      # and reveals a chosen file. `--walker-skip` (below) still prunes the noise.
+      "--walker=file,dir,follow,hidden"
       "--walker-skip=${lib.concatStringsSep "," walkerSkipDirs}"
     ];
     fileWidget.options = [
@@ -77,6 +82,10 @@ in
       "--bind 'ctrl-/:change-preview-window(down|hidden|)'"
     ];
     changeDirWidget.options = [
+      # ALT-C is change-dir: keep it directories-only. FZF_ALT_C_OPTS is appended
+      # after FZF_DEFAULT_OPTS, and fzf takes the last `--walker`, so this re-pins
+      # dirs-only and overrides the global `file,dir` walker above for ALT-C.
+      "--walker=dir,follow,hidden"
       "--preview 'ls -1 --color=always {} | head -50'"
     ];
   };
