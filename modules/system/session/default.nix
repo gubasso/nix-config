@@ -58,6 +58,12 @@ in
       xkb = {
         layout = "us";
         variant = "altgr-intl";
+        # Keyboard config is declared here as the single source of truth; nixpkgs
+        # renders /etc/X11/xorg.conf.d/00-keyboard.conf from these xkb settings
+        # (services/misc/graphical-desktop.nix). caps:swapescape was previously
+        # shipped as a static 00-keyboard.conf, which now collides with that
+        # generated file — hence the move to the declarative option.
+        options = "caps:swapescape";
       };
 
       displayManager.startx.enable = true;
@@ -93,8 +99,13 @@ in
 
   environment = {
     etc = {
-      "vconsole.conf".source = ./console-keymap/vconsole.conf;
-      "X11/xorg.conf.d/00-keyboard.conf".source = ./console-keymap/X11/xorg.conf.d/00-keyboard.conf;
+      # Ship a curated vconsole.conf (KEYMAP=us-altgr-intl-nodeadkeys, FONT=ter-v32b).
+      # nixpkgs' console module now also renders /etc/vconsole.conf from
+      # console.keyMap/console.font (config/console.nix), so force ours to win.
+      # We keep the static file rather than going through console.keyMap because
+      # `us-altgr-intl-nodeadkeys` is an X-layout variant, not a kbd console keymap,
+      # and console.keyMap is validated by `loadkeys` at build time.
+      "vconsole.conf".source = lib.mkForce ./console-keymap/vconsole.conf;
       "X11/xorg.conf.d/30-libinput-pointer.conf".source =
         ./xorg-input/X11/xorg.conf.d/30-libinput-pointer.conf;
       "X11/xorg.conf.d/35-libinput-trackpoint.conf".source =
