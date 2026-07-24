@@ -20,10 +20,20 @@
   # tree-sitter CLI + a C compiler are required by nvim-treesitter's `main` branch
   # to compile parsers at install/update. Upstream is explicit: install the CLI
   # via a package manager, NOT npm -- so it comes from nix here, not mason.
+  #
+  # hunspell (wrapped with its dictionaries) is the detection backend for the
+  # vim-DetectSpellLang plugin, which samples a prose buffer and picks &spelllang
+  # automatically. hunspell is used ONLY to detect the language; Neovim's own
+  # spell squiggles keep using its .spl files. The wrapper sets DICPATH so the
+  # dicts resolve -- bare hunspellDicts.* on PATH would not be found.
   home.packages = [
     pkgs.nodejs
     pkgs.tree-sitter
     pkgs.gcc
+    (pkgs.hunspell.withDicts (d: [
+      d.en_US-large
+      d.pt-br
+    ]))
   ];
 
   programs.bash.shellAliases.n = "nvim";

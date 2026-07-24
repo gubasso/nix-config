@@ -34,8 +34,9 @@ opt.sessionoptions = { "buffers", "curdir", "tabpages", "winsize" }
 opt.shiftround = true -- Round indent
 opt.shiftwidth = 2 -- Size of an indent
 opt.shortmess:append({ W = true, I = true, c = true })
-opt.spell = true
-opt.spelllang = { "en" }
+-- Spell is scoped to prose filetypes (see core/autocmds/filetypes.lua), not
+-- enabled globally, so code buffers are not spell-checked. spelllang is set
+-- per-buffer there and auto-detected by vim-DetectSpellLang (plugins/spell.lua).
 opt.splitbelow = true -- Put new windows below current
 opt.splitright = true -- Put new windows right of current
 opt.tabstop = 2 -- Number of spaces tabs count for

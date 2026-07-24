@@ -38,10 +38,12 @@ api.nvim_create_autocmd("FileType", {
   end,
 })
 
--- Text / Markdown / Git commit settings
+-- Prose settings: wrap + spell for writing filetypes. spelllang starts at en_us;
+-- vim-DetectSpellLang (plugins/spell.lua) overrides it from the buffer content.
+-- The ,e / ,p / ,s maps below stay as manual overrides when detection is wrong.
 api.nvim_create_autocmd("FileType", {
   group = augroup("wrap_spell"),
-  pattern = { "gitcommit", "markdown" },
+  pattern = { "gitcommit", "markdown", "text", "rst", "asciidoc" },
   callback = function()
     vim.opt_local.wrap = true
     vim.opt_local.spell = true
