@@ -13,16 +13,89 @@ let
   colors = import ./colors.nix { inherit lib; };
   registry = import ../../themes;
 
-  # name -> resolved theme attrset (throws on unknown name).
+  # The canonical semantic vocabulary every theme must define. Apps read these
+  # roles; each must resolve to a base16 slot in one hop (see colorOf). Keeping
+  # the set complete-and-required is what lets any app emitter reference any role
+  # without a per-theme existence check (ADR-0019).
+  requiredSemantic = [
+    "bg"
+    "surface"
+    "surface2"
+    "overlay"
+    "muted"
+    "text_dim"
+    "fg"
+    "emphasis"
+    "border"
+    "accent"
+    "primary"
+    "secondary"
+    "error"
+    "warn"
+    "success"
+    "info"
+    "urgent"
+  ];
+
+  # The base16 palette slots every theme must define (base00..base0F).
+  requiredSlots = map (i: "base0${lib.toHexString i}") (lib.range 0 15);
+
+  # Validate a resolved theme's shape at eval time — the declarative analogue of
+  # a JSON Schema. Returns the theme unchanged on success; throws a legible,
+  # theme-named error otherwise. Runs inside resolve, so every app module that
+  # resolves a theme surfaces violations on `nix flake check` / switch (ADR-0019).
+  validateTheme =
+    theme:
+    let
+      id = theme.meta.name or "<unnamed>";
+      fail = msg: throw "themeLib: theme ${builtins.toJSON id}: ${msg}";
+      has = attrs: k: builtins.hasAttr k attrs;
+
+      missingSemantic = lib.filter (k: !has theme.semantic k) requiredSemantic;
+      danglingSemantic = lib.filter (v: !has theme.palette v) (builtins.attrValues theme.semantic);
+      missingSlots = lib.filter (k: !has theme.palette k) requiredSlots;
+      badHex = lib.filter (v: builtins.match "#[0-9a-fA-F]{6}" v == null) (
+        builtins.attrValues theme.palette
+      );
+      polarity = theme.meta.polarity or null;
+    in
+    if missingSemantic != [ ] then
+      fail "missing required semantic role(s): ${lib.concatStringsSep ", " missingSemantic}"
+    else if danglingSemantic != [ ] then
+      fail (
+        "semantic role(s) resolve to unknown palette slot(s): "
+        + "${lib.concatStringsSep ", " (lib.unique danglingSemantic)}"
+      )
+    else if missingSlots != [ ] then
+      fail "palette missing base16 slot(s): ${lib.concatStringsSep ", " missingSlots}"
+    else if badHex != [ ] then
+      fail "palette value(s) are not #RRGGBB: ${lib.concatStringsSep ", " (lib.unique badHex)}"
+    else if
+      !(lib.elem polarity [
+        "dark"
+        "light"
+      ])
+    then
+      fail "meta.polarity must be \"dark\" or \"light\" (got ${builtins.toJSON polarity})"
+    else if !(builtins.isString (theme.cursor.theme or null)) then
+      fail "cursor.theme must be a string"
+    else if !(builtins.isInt (theme.cursor.size or null)) then
+      fail "cursor.size must be an int"
+    else
+      theme;
+
+  # name -> resolved theme attrset (throws on unknown name or invalid shape).
   resolve =
     name:
     let
       n = if name == null then throw "themeLib.resolve: theme name is null" else name;
     in
-    registry.${n} or (throw (
-      "themeLib.resolve: unknown theme ${builtins.toJSON n} "
-      + "(known: ${lib.concatStringsSep ", " (lib.attrNames registry)})"
-    ));
+    validateTheme (
+      registry.${n} or (throw (
+        "themeLib.resolve: unknown theme ${builtins.toJSON n} "
+        + "(known: ${lib.concatStringsSep ", " (lib.attrNames registry)})"
+      ))
+    );
 
   # Validate a host's per-app sibling-scheme pick against the theme's declared
   # associatedSchemes. Returns the scheme (or null) so callers can use it inline.

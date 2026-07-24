@@ -24,9 +24,9 @@ Tiers:
   meta = { name; label; polarity;  # "dark" | "light"
            blurb; };
   palette   = { base00 … base0F };  # 16 "#RRGGBB" strings
-  semantic  = {                     # role -> slot (or another role) name
-    bg surface overlay muted fg emphasis border
-    accent error warn success info;
+  semantic  = {                     # role -> base16 slot (resolved in one hop)
+    bg surface surface2 overlay muted text_dim fg emphasis border
+    accent primary secondary error warn success info urgent;
   };
   typography = {
     families = { <token> = "<fontconfig family>"; … };  # registry of official fonts
@@ -43,8 +43,11 @@ Tiers:
 }
 ```
 
-`name` must equal the directory name. Every `semantic` value must resolve to a
-palette slot (directly, or via another semantic role).
+`name` must equal the directory name. Every `semantic` value must be a
+`base00`…`base0F` slot name: `colorOf` resolves a role in a **single hop**
+(`palette.${semantic.role}`), so roles do **not** chain to other roles. The full
+canonical vocabulary above is **required** in every theme and checked at resolve
+time (see [Validation](#validation)).
 
 ## base16 semantic-slot standard
 
@@ -52,12 +55,12 @@ palette slot (directly, or via another semantic role).
 | --- | --- |
 | base00 | background |
 | base01 | surface (lighter bg) |
-| base02 | overlay / border / selection |
+| base02 | overlay / border / selection / **surface2** |
 | base03 | muted / comments |
-| base04 | dim foreground |
+| base04 | dim foreground — **text_dim** |
 | base05 | default foreground |
 | base06–07 | bright foreground |
-| base08 | red — **error** |
+| base08 | red — **error** / **urgent** |
 | base09 | orange — **warn** |
 | base0A | yellow |
 | base0B | green — **success** |
@@ -66,10 +69,32 @@ palette slot (directly, or via another semantic role).
 | base0E | magenta |
 | base0F | brown |
 
+`accent`/`primary`/`secondary`/`urgent` are **theme-chosen** roles: they point at
+whichever hue carries that intent in the palette (e.g. a green theme aims `accent`
+and `primary` at `base0B`, a purple one at `base0E`). `primary` is the signature
+action colour (typically the same slot as `accent`); `secondary` is a
+complementary hue; `urgent` flags attention (dwm urgent-window borders, dunst
+critical notifications) and may share `base08` with `error` or diverge.
+
 Terminal ANSI `color0..15` derive from a fixed base16 slot order (see
 `lib/theme/colors.nix:ansiSlots`); `accent`/`success`/`info` etc. are chosen
 per theme via the semantic layer, so a green theme points `accent` at `base0B`
 and a purple one at `base0E`.
+
+## Validation
+
+`resolve` validates a theme's shape at **eval time** — the declarative analogue of
+a JSON Schema, kept in `lib/theme/default.nix` (`validateTheme`) rather than a
+separate check derivation. Because every app module resolves the active theme,
+any violation surfaces on `nix flake check` / `home-manager switch` with a
+theme-named message. The checks (ADR-0019):
+
+- **Required semantic roles** — the full canonical vocabulary must be present.
+- **One-hop resolution** — every `semantic` value names a defined palette slot.
+- **Palette completeness** — exactly `base00`…`base0F`.
+- **Colour format** — every palette value matches `#RRGGBB`.
+- **`meta.polarity`** is `"dark"` or `"light"`; **`cursor`** has a string `theme`
+  and int `size`.
 
 ## `lib/theme` — resolver + token-algebra primitives
 
@@ -86,7 +111,7 @@ provisioning map). The default font tokens are shared in
 
 Public `pkgs.themeLib` surface:
 
-- `resolve name` → the theme attrset (throws on unknown name).
+- `resolve name` → the theme attrset (throws on unknown name or invalid shape; see [Validation](#validation)).
 - `colorOf theme role` → hex for a semantic role or raw slot.
 - `hexToRgb "#RRGGBB"` → `"R;G;B"` decimal (for truecolor SGR escapes).
 - `ansiSlots` → the base16 slot order backing terminal `color0..15`.

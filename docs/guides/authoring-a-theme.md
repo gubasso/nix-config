@@ -22,8 +22,14 @@ themes/<name>/
    (`docs/reference/theming.md`): dark → light backgrounds/foregrounds in
    `base00`–`base07`, accent hues in `base08`–`base0F`. Reuse an established
    base16 scheme's values if you're porting one.
-2. **Semantic** — map each role to a slot. Point `accent` at the theme's
-   signature hue (e.g. `base0B` for a green theme, `base0E` for a purple one).
+2. **Semantic** — map **every** canonical role to a `base00`…`base0F` slot
+   (`colorOf` resolves in one hop, so a role may not point at another role). The
+   required vocabulary is `bg surface surface2 overlay muted text_dim fg emphasis
+   border accent primary secondary error warn success info urgent` — omitting any
+   fails validation at eval time. Point `accent`/`primary` at the theme's
+   signature hue (e.g. `base0B` for a green theme, `base0E` for a purple one),
+   `secondary` at a complementary hue, and `urgent` at the attention hue
+   (often `base08`).
 3. **Typography** — a `families` registry (token → fontconfig family), a `sizes`
    scale, and `roles` (`mono`/`ui`/`glyphs`) binding family+size tokens. Any
    family an app resolves must have a matching entry in `pkgs.fontPackages`

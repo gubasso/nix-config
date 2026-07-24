@@ -7,7 +7,7 @@ let
 in
 {
   # dwm colors as an Xresources block (the fork reads these via loadxrdb():
-  # dwm.{norm,sel}{bg,fg,border}color and color0..color15).
+  # dwm.{norm,sel,urg}{bg,fg,border}color and color0..color15).
   mkDwmXresources =
     theme:
     let
@@ -22,6 +22,9 @@ in
       dwm.selbgcolor:      ${c "accent"}
       dwm.selfgcolor:      ${c "bg"}
       dwm.selbordercolor:  ${c "accent"}
+      dwm.urgbgcolor:      ${c "urgent"}
+      dwm.urgfgcolor:      ${c "bg"}
+      dwm.urgbordercolor:  ${c "urgent"}
       Xcursor.theme: ${theme.cursor.theme}
       Xcursor.size: ${toString theme.cursor.size}
       ${lib.concatStringsSep "\n" ansi}

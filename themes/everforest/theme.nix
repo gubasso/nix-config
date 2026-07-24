@@ -29,20 +29,28 @@
     base0F = "#9DA9A0";
   };
 
-  # Tier 2 — semantic aliases. accent is Everforest's signature green.
+  # Tier 2 — semantic aliases. accent is Everforest's signature green. Every
+  # role resolves to a base16 slot in one hop (colorOf does not chain role ->
+  # role). The full canonical vocabulary is required in every theme (enforced by
+  # lib/theme validation, ADR-0019).
   semantic = {
     bg = "base00";
     surface = "base01";
+    surface2 = "base02";
     overlay = "base02";
     muted = "base03";
+    text_dim = "base04";
     fg = "base05";
     emphasis = "base07";
     border = "base02";
     accent = "base0B";
+    primary = "base0B";
+    secondary = "base0D";
     error = "base08";
     warn = "base09";
     success = "base0B";
     info = "base0D";
+    urgent = "base08";
   };
 
   # Typography SoT (design tokens): the shared default font set. Spread-and-

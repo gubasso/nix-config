@@ -18,10 +18,11 @@ in
       # Generated from theme "${theme.meta.name}" by nix-config lib/theme. Do not edit.
       [global]
           frame_color = "${c "accent"}"
+          highlight = "${c "accent"}"
 
       [urgency_low]
           background = "${c "surface"}"
-          foreground = "${c "muted"}"
+          foreground = "${c "text_dim"}"
           frame_color = "${c "accent"}"
 
       [urgency_normal]
@@ -31,7 +32,7 @@ in
 
       [urgency_critical]
           background = "${c "bg"}"
-          foreground = "${c "fg"}"
-          frame_color = "${c "error"}"
+          foreground = "${c "emphasis"}"
+          frame_color = "${c "urgent"}"
     '';
 }

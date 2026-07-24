@@ -32,20 +32,28 @@
   };
 
   # Tier 2 — semantic aliases (role -> slot name). Apps read roles; base16 backs
-  # them. accent is the theme's signature magenta.
+  # them. accent is the theme's signature magenta. Every role resolves to a
+  # base16 slot in one hop (colorOf does not chain role -> role). The full
+  # canonical vocabulary is required in every theme (enforced by lib/theme
+  # validation, ADR-0019).
   semantic = {
     bg = "base00";
     surface = "base01";
+    surface2 = "base02";
     overlay = "base02";
     muted = "base03";
+    text_dim = "base04";
     fg = "base05";
     emphasis = "base07";
     border = "base02";
     accent = "base0E";
+    primary = "base0E";
+    secondary = "base0F";
     error = "base08";
     warn = "base09";
     success = "base0B";
     info = "base0C";
+    urgent = "base08";
   };
 
   # Typography SoT (design tokens): the shared default font set. Spread-and-
