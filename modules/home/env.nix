@@ -60,6 +60,10 @@ let
     };
 in
 {
+  # `home.sessionVariables` is what Home Manager RENDERS into hm-session-vars.sh
+  # (upstream home-manager modules/home-environment.nix:660, installed into the
+  # profile and sourced by the HM-generated ~/.bashrc/~/.profile). This "shell"
+  # channel is the live source of EDITOR, PROJECTS, SSH_AUTH_SOCK, etc.
   home.sessionVariables = render "shell";
   home.sessionPath = path;
 

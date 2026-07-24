@@ -15,6 +15,10 @@ let
   theme = pkgs.themeLib.resolve (hostSettings.theme or "everforest");
 in
 {
+  # `programs.bash.enable` is what makes Home Manager GENERATE ~/.bashrc (and
+  # ~/.profile): upstream home-manager modules/programs/bash.nix:276 renders the
+  # file from bashrcExtra + shellAliases + initExtra below. We only contribute
+  # fragments here — the file itself is HM-owned (not authored in this repo).
   programs.bash = {
     enable = true;
     enableCompletion = true;

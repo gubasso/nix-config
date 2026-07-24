@@ -1,0 +1,21 @@
+Guard the hm-session-vars.sh source in home-manager's generic-linux target.
+
+Upstream unconditionally sources hm-session-vars.sh in programs.bash.initExtra.
+That ~/.bashrc is bind-mounted into dctl devcontainers, which never run Home
+Manager, so the file is absent there and the source errors at shell start. This
+adds an `[ -f ] &&` guard: a no-op on the host (file present), silent in
+containers. See nix-config/modules/home/generic-linux.nix.
+
+If a home-manager bump changes this line, this patch fails LOUDLY at eval — re-sync it then.
+
+--- a/generic-linux.nix
++++ b/generic-linux.nix
+@@ -77,7 +77,7 @@
+     # https://github.com/nix-community/home-manager/pull/797#issuecomment-544783247
+     programs.bash.initExtra = ''
+       . "${nixPkg}/etc/profile.d/nix.sh"
+-      . "${profileDirectory}/etc/profile.d/hm-session-vars.sh"
++      [ -f "${profileDirectory}/etc/profile.d/hm-session-vars.sh" ] && . "${profileDirectory}/etc/profile.d/hm-session-vars.sh"
+     '';
+
+     programs.zsh.envExtra = ''

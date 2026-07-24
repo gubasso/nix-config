@@ -137,7 +137,22 @@
     // the project devShell in COMMAND shells (`dctl ws shell <agent>` →
     // `bash -lic "<cmd>"`), where the interactive PROMPT_COMMAND direnv hook
     // never fires. Host shells (no DCTL_SANDBOX) keep the lazy on-`cd` hook.
-    "DCTL_SANDBOX": "1"
+    "DCTL_SANDBOX": "1",
+
+    // Host->container shell env parity. Mapped (not hardcoded) from the host's
+    // live values at create time via ${localEnv:VAR} — the launching interactive
+    // shell has these set (hm-session-vars is sourced there). Containers never run
+    // Home Manager, so without this they would be unset. Only generic CLI vars
+    // belong in this PUBLIC base layer; private/per-project vars (e.g. EXOBRAIN_*)
+    // live in their own nix-secrets layer (Atomic Artifact Principle, ADR-0013).
+    // An unset host var expands to "" (harmless). SUDO_EDITOR/SYSTEMD_EDITOR,
+    // ssh_*, xcursor and locale are deliberately NOT mapped (host/GUI-specific).
+    "EDITOR": "${localEnv:EDITOR}",
+    "VISUAL": "${localEnv:VISUAL}",
+    "FZF_DEFAULT_OPTS": "${localEnv:FZF_DEFAULT_OPTS}",
+    "PROJECTS": "${localEnv:PROJECTS}",
+    "TODO": "${localEnv:TODO}",
+    "NOTES": "${localEnv:NOTES}"
   },
   "remoteEnv": {
     // Nix-provided user CLIs live in the XDG profile bin and are PREPENDED here
