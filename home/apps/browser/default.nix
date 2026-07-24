@@ -8,7 +8,6 @@
       [
         brave
         librewolf
-        thunderbird
       ]
     )
     ++ (with pkgs; [
@@ -34,7 +33,6 @@
     ".local/share/icons/hicolor/scalable/apps/webapp-ai.svg".source = ./icons/webapp-ai.svg;
     ".local/share/icons/hicolor/scalable/apps/webapp-google.svg".source = ./icons/webapp-google.svg;
     ".local/share/icons/hicolor/scalable/apps/webapp-social.svg".source = ./icons/webapp-social.svg;
-    ".local/share/brave-unpacked-extensions".source = ./brave-unpacked-extensions;
   };
 
   xdg.configFile = {
