@@ -1,5 +1,0 @@
-require("core.autocmds")
-require("core.usercmds")
-require("core.options")
-require("core.keymaps")
-require("core.kitty-titlebar")

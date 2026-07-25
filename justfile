@@ -13,7 +13,7 @@ fmt:
 # Lint: anti-patterns (statix) + dead code (deadnix), source only
 lint:
     statix check .
-    deadnix --fail --exclude home/apps/dctl/images/agents/global-flake/flake.nix flake.nix home/apps lib modules overlays derivations catalog
+    deadnix --fail flake.nix home/apps lib modules overlays derivations catalog
 
 # Test tier: evaluate the flake and build its checks (packages + format gate)
 check:

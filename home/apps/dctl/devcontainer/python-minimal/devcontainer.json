@@ -1,6 +1,0 @@
-{
-  "name": "${localWorkspaceFolderBasename}-sandbox",
-  "postStartCommand": {
-    "python": "bash -lc 'if [ -e .envrc ]; then direnv allow . && direnv exec . true; fi'"
-  }
-}

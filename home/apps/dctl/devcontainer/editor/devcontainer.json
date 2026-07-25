@@ -1,9 +1,0 @@
-{
-  "mounts": [
-    {
-      "source": "${localEnv:HOME}/.config/nvim",
-      "target": "${localEnv:HOME}/.config/nvim",
-      "type": "bind"
-    }
-  ]
-}

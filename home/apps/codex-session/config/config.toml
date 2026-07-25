@@ -1,6 +1,0 @@
-# codex-session wrapper config.
-# Layer composition lives in config-recipes/ + configs/ (with per-profile
-# overrides under sibling profiles/<name>.config.toml).
-
-[config-recipe]
-default = "default"

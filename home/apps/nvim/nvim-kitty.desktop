@@ -1,7 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Neovim (Kitty)
-Exec=kitty -e nvim %F
-Terminal=false
-MimeType=text/plain;text/x-shellscript;text/x-python;text/markdown;text/css;text/html;application/json;application/x-yaml;
-NoDisplay=false

@@ -1,7 +1,0 @@
-# Trusted project directories (codex-session `projects` config layer).
-#
-# Portable, empty base: the public framework ships no trusted paths. The
-# `default` config-recipe names this layer, so it must exist for every
-# consumer or config-recipe composition fails (LayerNotFound). Personal
-# absolute project paths are overlaid by the private consumer (nix-secrets)
-# via `lib.mkForce`; see ADR-0012.

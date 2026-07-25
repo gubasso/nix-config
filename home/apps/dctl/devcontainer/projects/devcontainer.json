@@ -1,9 +1,0 @@
-{
-  "mounts": [
-    {
-      "source": "${localEnv:HOME}/Projects/",
-      "target": "${localEnv:HOME}/Projects/",
-      "type": "bind"
-    }
-  ]
-}

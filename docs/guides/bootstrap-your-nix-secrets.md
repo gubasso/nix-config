@@ -16,13 +16,19 @@ secrets; this framework holds everything shared.
       username = "me";
       hostModule = ./hosts/myhost;          # default.nix in that dir
       homeModule = ./hosts/myhost/home.nix;
-      publicAppsDir = nix-config + "/home/apps";
-      privateAppsDir = ./home/apps;         # your Home Manager app overlays
+      # Your private-bearing Home Manager apps are self-contained under your own
+      # home/apps/ and imported as extra modules (per-app atomicity, ADR-0020).
+      extraHomeModules = [ ./home/apps ];
       hostSettings = { dpi = 192; scale = 2; };
     };
   };
 }
 ```
+
+Each app is atomic: a public app is imported from `nix-config`, and any app with a
+private part lives wholly in your own `home/apps/<app>/`. `mkHost` still accepts
+`publicAppsDir`/`privateAppsDir` (defaulting to this repo's `home/apps` and
+`null`), but they no longer split a single app across the two repos.
 
 The consumer needs **only** `nix-config` as an input — nixpkgs, home-manager,
 disko, sops-nix, and nixos-hardware all arrive transitively through it. `mkHost`

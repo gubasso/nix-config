@@ -25,13 +25,14 @@ consumers own that data and import this framework.
   free of private URLs, branches, and revisions.
 - Keep shared modules reusable through explicit arguments such as
   `publicAppsDir`, `privateAppsDir`, `hostname`, `username`, and `hostSettings`.
-- **Atomic Artifact Principle** ([ADR-0015](docs/decisions/ADR-0015-atomic-artifact-principle.md)):
-  each config file lives in exactly one repo. A file may live here only if
-  nothing inside it is private; if any part is private it belongs wholly in the
-  consumer. Never duplicate a public file into the consumer under a private
-  `mkForce` — use a build-time merge that duplicates no file (`mkRealConfigDir`
-  overlaying only the private-bearing files, per-host content, `mkAfter`, or
-  public sourcing a private file).
+- **Atomic Artifact Principle (per-app)** ([ADR-0020](docs/decisions/ADR-0020-per-app-atomicity.md),
+  supersedes ADR-0015): each `home/apps/<app>` lives wholly in exactly one repo.
+  An app may live here only if **nothing** inside it is private; if any part is
+  private, the **whole** app (including its generic base) belongs in the consumer.
+  An app dir must never exist in both repos' `home/apps` trees — the public-base +
+  private-overlay pattern for apps is retired. Framework utilities
+  (`mkRealConfigDir`, `themeLib`, `fontPackages`) stay public and reusable by the
+  consumer's now-self-contained apps.
 - Flakes only see git-tracked files. Humans must track new files before Nix
   validation can fully see them.
 - Agents in this workspace must not run git unless the user explicitly permits it.

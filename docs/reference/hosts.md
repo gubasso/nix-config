@@ -9,6 +9,9 @@ Private consumers define their own:
 - private hardware profiles under their own module tree
 - `nixosConfigurations.<host>` and `homeConfigurations."<user>@<host>"`
 
-Use `lib.mkHost` and `lib.mkHomeHost` from this framework with
-`publicAppsDir` pointing at this repo's `home/apps` and `privateAppsDir`
-pointing at the consumer's private asset tree.
+Use `lib.mkHost` and `lib.mkHomeHost` from this framework. Public apps are
+imported from this repo's `home/apps`; a consumer's private-bearing apps are
+self-contained under the consumer's own `home/apps/<app>/` and passed via
+`extraHomeModules` (per-app atomicity, ADR-0020). `publicAppsDir`/`privateAppsDir`
+remain accepted (defaulting to this repo's `home/apps` and `null`) but no longer
+split a single app across both repos.

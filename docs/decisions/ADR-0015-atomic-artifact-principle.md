@@ -2,9 +2,17 @@
 
 ## Status
 
-Accepted. Enacted by the co-located apps (ADR-0014) and `pkgs.mkRealConfigDir`
-(`overlays/default.nix`); enforced by the `check-atomic-artifacts` hook in the
-private consumer (`nix-secrets` ADR-0013).
+**Superseded by [ADR-0020](ADR-0020-per-app-atomicity.md)** (per-app atomicity).
+The per-**file** rule below allowed an app to be split across both repos as a
+public-base + private-overlay merge. ADR-0020 replaces that with per-**app**
+atomicity: any app with a private part lives wholly in `nix-secrets`, and the
+public framework ships only apps with no private part. The historical decision is
+retained below for context.
+
+Originally accepted; enacted by the co-located apps (ADR-0014) and
+`pkgs.mkRealConfigDir` (`overlays/default.nix`); enforced by the
+`check-atomic-artifacts` hook in the private consumer (`nix-secrets` ADR-0013,
+now ADR-0021).
 
 ## Context
 

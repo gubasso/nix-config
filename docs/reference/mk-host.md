@@ -13,9 +13,12 @@ Both factories accept:
 - `extraModules`
 - `extraHomeModules`
 
-`publicAppsDir` defaults to this repo's `home/apps`. `privateAppsDir`, when
-provided by a consumer, points at the consumer's private co-located app tree.
+`publicAppsDir` defaults to this repo's `home/apps`; `privateAppsDir` defaults to
+`null`. Both remain accepted, but under per-app atomicity (ADR-0020) they no
+longer split a single app across the two repos: an app is atomic and lives wholly
+in one repo. A consumer passes its own self-contained, private-bearing apps via
+`extraHomeModules` instead.
 
-Shared app modules use relative assets in their own app directories. Private
-consumers own concrete host names, user names, hardware profiles, recipient
-scaffolding, and private app overlays.
+Each app uses relative assets in its own directory. Public apps (no private part)
+ship here; a consumer owns concrete host names, user names, hardware profiles,
+recipient scaffolding, and every app that carries a private part.

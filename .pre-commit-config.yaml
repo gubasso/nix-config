@@ -45,13 +45,8 @@ repos:
       - id: check-added-large-files
         args: ["--maxkb=2048"]
       - id: check-yaml
-      - id: check-json
-        # devcontainer.json is JSONC (allows // comments) per the Dev Container
-        # spec; strict check-json can't parse it. Skip those, check the rest.
-        exclude: (?:^|/)devcontainer\.json$
       - id: check-vcs-permalinks
       - id: check-toml
-      - id: check-xml
       - id: destroyed-symlinks
 
   # --- editorconfig: enforce the shared .editorconfig baseline ---
@@ -71,7 +66,7 @@ repos:
 
   # --- nix: format + lint (parse-only; no flake evaluation) ---
   # Tools come from the flake devShell (`nix develop` / direnv). Scoped to real
-  # source; the only vendored Nix is the dctl container global-flake, excluded.
+  # source.
   - repo: local
     hooks:
       - id: nixfmt
@@ -79,7 +74,6 @@ repos:
         entry: nixfmt
         language: system
         types: [nix]
-        exclude: ^home/apps/dctl/images/
       - id: statix
         name: statix (nix anti-patterns)
         entry: statix check
@@ -91,7 +85,6 @@ repos:
         entry: deadnix --fail
         language: system
         types: [nix]
-        exclude: ^home/apps/dctl/images/
 
   # --- spelling: typo detection across text/docs ---
   - repo: https://github.com/crate-ci/typos

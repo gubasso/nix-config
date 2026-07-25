@@ -44,11 +44,13 @@ See [ADR-0002](../decisions/ADR-0002-mkhost-parameterization.md).
 ## Why apps are co-located
 
 Home Manager app modules and their dotfiles live together under
-`home/apps/<app>/`. Public apps source their own files with relative paths. A
-private consumer can provide `privateAppsDir` for co-located overrides and uses
-`publicAppsDir` only for explicit public/private config-dir merges such as
-codex-session. The public modules keep their full structure and ship zero
-personal files; the private consumer owns every host-specific overlay.
+`home/apps/<app>/`. Each app is atomic (ADR-0020): a public app lives wholly here
+and sources its own files with relative paths, while any app with a private part
+lives wholly in the private consumer's own `home/apps/<app>/`, imported through
+`extraHomeModules`. `pkgs.mkRealConfigDir` merges only an app's own local base and
+optional generated overlay — never a cross-repo public base. `mkHost` still
+accepts `publicAppsDir`/`privateAppsDir` (they default to this repo's `home/apps`
+and `null`), but they no longer drive an app split across the two repos.
 
 See [ADR-0003](../decisions/ADR-0003-assets-live-in-consumer.md), superseded for
 the public/private asset split by

@@ -71,7 +71,8 @@
   # Sibling schemes — name references only. A host picks one per app via
   # `my.apps.<app>.scheme`; the app loads it natively (nvim colorscheme
   # plugin). No color injection. Values are the nvim colorscheme keys actually
-  # installed in the consumer (see home/apps/nvim/.../colorschemes.lua). Apps
+  # installed in the consumer's nvim app (nix-secrets
+  # home/apps/nvim/config/lua/plugins/colorschemes.lua). Apps
   # driven by the emitted palette (kitty, rofi, dwm) need no sibling entry.
   associatedSchemes = {
     nvim = [ "catppuccin" ];
