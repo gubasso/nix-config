@@ -262,25 +262,25 @@ return {
       },
     })
 
+    -- Shrink the preview to 35% (vs the global right:60%) so the result
+    -- list — the point of a fuzzy line grep — gets the remaining 65%.
+    -- Shared by <leader>fg and <C-/> below (same action, two entry points).
+    local function grep_project_fuzzy()
+      fzf.grep_project({ winopts = { preview = { horizontal = "right:35%" } } })
+    end
+
     -- Register keymaps via which-key
     require("which-key").add({
       -- Direct shortcuts (muscle memory / conventions)
       { "<C-p>", fzf.files, desc = "Find Files" },
+      { "<C-/>", grep_project_fuzzy, desc = "Grep project (fuzzy lines)" },
       { "<leader>/", fzf.blines, desc = "Buffer lines (fuzzy)" },
       { "<leader>:", fzf.command_history, desc = "Command History" },
       { "<leader>r", fzf.resume, desc = "Resume last picker" },
 
       -- <leader>f — everyday pickers (lowercase = frequent)
       { "<leader>fb", fzf.buffers, desc = "Buffers" },
-      {
-        "<leader>fg",
-        function()
-          -- Shrink the preview to 35% (vs the global right:60%) so the result
-          -- list — the point of a fuzzy line grep — gets the remaining 65%.
-          fzf.grep_project({ winopts = { preview = { horizontal = "right:35%" } } })
-        end,
-        desc = "Grep project (fuzzy lines)",
-      },
+      { "<leader>fg", grep_project_fuzzy, desc = "Grep project (fuzzy lines)" },
       {
         "<leader>fr",
         function()
