@@ -95,18 +95,32 @@ in
     export FZF_COMPLETION_AUTO_COMMON_PREFIX_PART=true
 
     # fzf-tab-completion, sourced from the nix store (fully nix-managed).
-    source "${pkgs.fzf-tab-completion}/share/fzf-tab-completion/bash/fzf-bash-completion.sh"
-    if [[ $- == *i* ]]; then
-      bind '"\e[0n": complete' 2>/dev/null || true
-      __fzf_tab_or_trigger() {
-        local trigger=''${FZF_COMPLETION_TRIGGER-**}
-        if [[ "''${READLINE_LINE:0:$READLINE_POINT}" == *"$trigger" ]]; then
-          builtin printf '\033[5n'
-        else
-          fzf_bash_completion
-        fi
-      }
-      bind -x '"\t": __fzf_tab_or_trigger' 2>/dev/null || true
+    #
+    # Guarded on readability because ~/.bashrc is a HOST Home-Manager artifact
+    # that dctl bind-mounts into containers with their own, separate /nix. Every
+    # absolute store path baked in here is a bet that the container's store holds
+    # the identical derivation; most win by coincidence (same nixpkgs rev), and
+    # this one cannot — fzf-tab-completion is vendored in THIS repo's overlay, so
+    # nothing built from plain nixpkgs will ever have the path. Unguarded it
+    # printed "No such file or directory" on every container shell. Degrade to
+    # stock readline completion instead of erroring.
+    if [ -r "${pkgs.fzf-tab-completion}/share/fzf-tab-completion/bash/fzf-bash-completion.sh" ]; then
+      source "${pkgs.fzf-tab-completion}/share/fzf-tab-completion/bash/fzf-bash-completion.sh"
+
+      # The \t binding calls fzf_bash_completion, so it only makes sense once the
+      # source above actually defined it — keep it inside the guard.
+      if [[ $- == *i* ]]; then
+        bind '"\e[0n": complete' 2>/dev/null || true
+        __fzf_tab_or_trigger() {
+          local trigger=''${FZF_COMPLETION_TRIGGER-**}
+          if [[ "''${READLINE_LINE:0:$READLINE_POINT}" == *"$trigger" ]]; then
+            builtin printf '\033[5n'
+          else
+            fzf_bash_completion
+          fi
+        }
+        bind -x '"\t": __fzf_tab_or_trigger' 2>/dev/null || true
+      fi
     fi
   '';
 }
