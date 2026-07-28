@@ -4,9 +4,9 @@
 # read-only into dctl containers (base devcontainer layer) — no baked duplicate.
 # Wire nix-direnv's `use flake` without home-manager. nix-direnv is installed into
 # the XDG Nix profile (~/.local/state/nix/profile) — by the host-flake on the host,
-# by dctl's nix-bootstrap.sh global flake in a container; the path is the same
-# either way. XDG profile first, legacy ~/.nix-profile as a fallback. Guarded so a
-# pre-install / pre-bootstrap shell doesn't error.
+# by the baked image toolset in a dctl container (nix-secrets ADR-0027); the path
+# is the same either way. XDG profile first, legacy ~/.nix-profile as a fallback.
+# Guarded so a pre-install shell doesn't error.
 for d in \
   "${XDG_STATE_HOME:-$HOME/.local/state}/nix/profile/share/nix-direnv/direnvrc" \
   "$HOME/.nix-profile/share/nix-direnv/direnvrc"; do
@@ -16,3 +16,26 @@ for d in \
     break
   fi
 done
+
+# Layout state — nix-direnv's profile cache plus its GC roots — is PER-MACHINE: it
+# names paths in *that* machine's /nix store. direnv's default puts it at
+# $PWD/.direnv, i.e. INSIDE the project, so a dctl container bind-mounting the
+# workspace inherits the host's layout and vice versa. The two then fight over one
+# file, because nix-direnv keys the cache on a hash of the flake EXPRESSION rather
+# than the directory — every bare `use flake` project lands on the same
+# `flake-profile-<sha>` name. The loser sources store paths that do not exist in its
+# own store, which surfaces as "command not found" on a PATH that visibly contains
+# the command.
+#
+# Keying layout by absolute $PWD under ~/.cache — never shared, on any host or in
+# any container — gives every machine its own state and keeps projects clean. A
+# path slug rather than a hash: no external command, deterministic, and
+# `ls ~/.cache/direnv/layouts/` stays readable. (Limit: a project path over ~255
+# bytes would exceed one filename component.)
+#
+# Defined here, not in lib/*.sh: direnv sources lib/*.sh FIRST and this file after,
+# so this definition wins over the stdlib default.
+direnv_layout_dir() {
+  local slug=${PWD//\//%}
+  echo "${XDG_CACHE_HOME:-$HOME/.cache}/direnv/layouts/${slug#%}"
+}
