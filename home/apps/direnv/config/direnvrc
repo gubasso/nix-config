@@ -27,11 +27,23 @@ done
 # own store, which surfaces as "command not found" on a PATH that visibly contains
 # the command.
 #
-# Keying layout by absolute $PWD under ~/.cache — never shared, on any host or in
-# any container — gives every machine its own state and keeps projects clean. A
-# path slug rather than a hash: no external command, deterministic, and
-# `ls ~/.cache/direnv/layouts/` stays readable. (Limit: a project path over ~255
-# bytes would exceed one filename component.)
+# Keying layout by absolute $PWD under ~/.cache moves the state out of the project
+# and onto the machine, so a bind-mounted workspace no longer carries one store's
+# layout into another. A path slug rather than a hash: no external command,
+# deterministic, and `ls ~/.cache/direnv/layouts/` stays readable. (Limit: a
+# project path over ~255 bytes would exceed one filename component.)
+#
+# WHAT SEPARATES HOST FROM CONTAINER IS THE STORAGE, NOT THE SLUG. The slug alone
+# is not a guarantee: a dctl container bind-mounts ~/Projects at the SAME absolute
+# path, so `cd ~/Projects/<repo>` yields a byte-identical slug on both sides. The
+# separation holds because ~/.cache/direnv is a distinct filesystem on each side —
+# the host's own directory versus a per-user container volume. Never bind-mount
+# the host's ~/.cache/direnv into a container: that would collapse the two onto one
+# file and reproduce exactly the failure above.
+#
+# Containers DO deliberately share one layout dir among themselves, because they
+# share one /nix store — there a shared layout is a cache hit, not a conflict. See
+# nix-secrets ADR-0028 and its docs/reference/dctl-nix-store.md.
 #
 # Defined here, not in lib/*.sh: direnv sources lib/*.sh FIRST and this file after,
 # so this definition wins over the stdlib default.
